@@ -41,14 +41,11 @@ class _AdaptiveNavigationShellState extends State<AdaptiveNavigationShell> {
 
   @override
   Widget build(BuildContext context) {
-    // LayoutBuilder digunakan untuk membaca lebar ruang parent secara responsif
     return LayoutBuilder(
       builder: (context, constraints) {
-        // Breakpoint: jika lebar >= 840 px gunakan NavigationRail (Expanded)
         final bool isExpanded = constraints.maxWidth >= 840;
 
         if (isExpanded) {
-          // TAMPILAN EXPANDED / DESKTOP / TABLET LANDSCAPE
           return Scaffold(
             appBar: AppBar(
               title: const Text('Course Explorer (Expanded)'),
@@ -89,7 +86,6 @@ class _AdaptiveNavigationShellState extends State<AdaptiveNavigationShell> {
           );
         }
 
-        // TAMPILAN COMPACT / MEDIUM (< 840 px)
         return Scaffold(
           appBar: AppBar(
             title: const Text('Course Explorer (Compact)'),
@@ -169,10 +165,10 @@ class HomeScreen extends StatelessWidget {
           const SizedBox(height: 16),
           const Card(
             child: ListTile(
-              leading: Icon(Icons.devices),
-              title: Text('Tahap 11: Adaptive Navigation'),
+              leading: Icon(Icons.touch_app),
+              title: Text('Tahap 12: Interaksi Pengguna'),
               subtitle: Text(
-                'Layar < 840 px memakai NavigationBar di bawah.\nLayar >= 840 px beralih ke NavigationRail di samping.',
+                'Buka menu Courses untuk mencoba interaksi Tap (InkWell), Tombol Favorite (IconButton), dan Long Press (GestureDetector).',
               ),
             ),
           ),
@@ -182,33 +178,154 @@ class HomeScreen extends StatelessWidget {
   }
 }
 
-// 2. Tampilan Halaman Courses
-class CoursesScreen extends StatelessWidget {
+// 2. Tampilan Halaman Courses dengan Interaksi Tap, Favorite, dan Long Press
+class CoursesScreen extends StatefulWidget {
   const CoursesScreen({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    final List<Map<String, String>> sampleCourses = [
-      {'code': 'MOB04', 'name': 'Responsive Layout', 'status': 'Active'},
-      {'code': 'MOB05', 'name': 'Navigation', 'status': 'Planned'},
-      {'code': 'MOB06', 'name': 'Interaction', 'status': 'Planned'},
-    ];
+  State<CoursesScreen> createState() => _CoursesScreenState();
+}
 
+class _CoursesScreenState extends State<CoursesScreen> {
+  // Data mata kuliah dengan state isFavorite
+  final List<Map<String, dynamic>> _courses = [
+    {
+      'code': 'MOB04',
+      'name': 'Responsive Layout',
+      'status': 'Active',
+      'isFavorite': false,
+      'desc': 'Membahas MediaQuery, LayoutBuilder, dan Breakpoint adaptif.',
+    },
+    {
+      'code': 'MOB05',
+      'name': 'Navigation',
+      'status': 'Planned',
+      'isFavorite': false,
+      'desc':
+          'Mempelajari navigasi stack push/pop dan adaptasi bilah navigasi.',
+    },
+    {
+      'code': 'MOB06',
+      'name': 'Interaction',
+      'status': 'Planned',
+      'isFavorite': false,
+      'desc': 'Eksplorasi InkWell, GestureDetector, tombol, form, dan dialog feedback.',
+    },
+  ];
+
+  @override
+  Widget build(BuildContext context) {
     return ListView.builder(
       padding: const EdgeInsets.all(12),
-      itemCount: sampleCourses.length,
+      itemCount: _courses.length,
       itemBuilder: (context, index) {
-        final course = sampleCourses[index];
+        final course = _courses[index];
+        final bool isFav = course['isFavorite'] as bool;
+
         return Card(
           margin: const EdgeInsets.symmetric(vertical: 6),
-          child: ListTile(
-            leading: CircleAvatar(
-              backgroundColor: Colors.blue.shade100,
-              child: Text('${index + 1}'),
+          clipBehavior: Clip.antiAlias, // Memastikan efek ripple InkWell rapi
+          child: InkWell(
+            // Aksi Tap dengan efek ripple Material
+            onTap: () {
+              ScaffoldMessenger.of(context).hideCurrentSnackBar();
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text('Course diklik: ${course['name']}'),
+                  duration: const Duration(seconds: 1),
+                ),
+              );
+            },
+            // Aksi Long Press menggunakan GestureDetector bawaan atau InkWell onLongPress
+            onLongPress: () {
+              showDialog(
+                context: context,
+                builder: (ctx) => AlertDialog(
+                  title: Text(course['name']),
+                  content: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text('Kode: ${course['code']}'),
+                      const SizedBox(height: 6),
+                      Text('Deskripsi: ${course['desc']}'),
+                      const Divider(height: 16),
+                      Text(
+                        'Praktikan: $studentName ($studentId)',
+                        style: const TextStyle(
+                          fontSize: 12,
+                          color: Colors.blueGrey,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ],
+                  ),
+                  actions: [
+                    TextButton(
+                      onPressed: () => Navigator.pop(ctx),
+                      child: const Text('Tutup'),
+                    ),
+                  ],
+                ),
+              );
+            },
+            child: Padding(
+              padding: const EdgeInsets.all(12.0),
+              child: Row(
+                children: [
+                  CircleAvatar(
+                    backgroundColor: Colors.blue.shade100,
+                    child: Text('${index + 1}'),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          course['name'],
+                          style: const TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 15,
+                          ),
+                        ),
+                        const SizedBox(height: 2),
+                        Text(
+                          'Kode: ${course['code']} • ${course['status']}',
+                          style: TextStyle(
+                            color: Colors.grey.shade700,
+                            fontSize: 13,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  // Tombol Favorite dengan pengubahan boolean state
+                  IconButton(
+                    icon: Icon(
+                      isFav ? Icons.favorite : Icons.favorite_border,
+                      color: isFav ? Colors.red : Colors.grey,
+                    ),
+                    onPressed: () {
+                      setState(() {
+                        course['isFavorite'] = !isFav;
+                      });
+                      ScaffoldMessenger.of(context).hideCurrentSnackBar();
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text(
+                            !isFav
+                                ? 'Menambahkan ${course['name']} ke favorit'
+                                : 'Menghapus ${course['name']} dari favorit',
+                          ),
+                          duration: const Duration(seconds: 1),
+                        ),
+                      );
+                    },
+                  ),
+                ],
+              ),
             ),
-            title: Text(course['name']!),
-            subtitle: Text('Kode: ${course['code']}'),
-            trailing: Chip(label: Text(course['status']!)),
           ),
         );
       },
