@@ -17,23 +17,22 @@ class MyApp extends StatelessWidget {
       title: 'Course Explorer',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(useMaterial3: true, colorSchemeSeed: Colors.blue),
-      home: const MainNavigationScreen(),
+      home: const AdaptiveNavigationShell(),
     );
   }
 }
 
-class MainNavigationScreen extends StatefulWidget {
-  const MainNavigationScreen({super.key});
+class AdaptiveNavigationShell extends StatefulWidget {
+  const AdaptiveNavigationShell({super.key});
 
   @override
-  State<MainNavigationScreen> createState() => _MainNavigationScreenState();
+  State<AdaptiveNavigationShell> createState() =>
+      _AdaptiveNavigationShellState();
 }
 
-class _MainNavigationScreenState extends State<MainNavigationScreen> {
-  // State untuk melacak tab/destinasi yang sedang aktif
+class _AdaptiveNavigationShellState extends State<AdaptiveNavigationShell> {
   int _currentIndex = 0;
 
-  // Daftar halaman yang akan ditampilkan sesuai index
   final List<Widget> _pages = const [
     HomeScreen(),
     CoursesScreen(),
@@ -42,39 +41,88 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Course Explorer'),
-        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-      ),
-      // Konten berubah otomatis berdasarkan _currentIndex
-      body: _pages[_currentIndex],
-      // Implementasi NavigationBar (Material 3)
-      bottomNavigationBar: NavigationBar(
-        selectedIndex: _currentIndex,
-        onDestinationSelected: (int index) {
-          setState(() {
-            _currentIndex = index;
-          });
-        },
-        destinations: const [
-          NavigationDestination(
-            icon: Icon(Icons.home_outlined),
-            selectedIcon: Icon(Icons.home),
-            label: 'Home',
+    // LayoutBuilder digunakan untuk membaca lebar ruang parent secara responsif
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        // Breakpoint: jika lebar >= 840 px gunakan NavigationRail (Expanded)
+        final bool isExpanded = constraints.maxWidth >= 840;
+
+        if (isExpanded) {
+          // TAMPILAN EXPANDED / DESKTOP / TABLET LANDSCAPE
+          return Scaffold(
+            appBar: AppBar(
+              title: const Text('Course Explorer (Expanded)'),
+              backgroundColor: Theme.of(context).colorScheme.inversePrimary,
+            ),
+            body: Row(
+              children: [
+                NavigationRail(
+                  selectedIndex: _currentIndex,
+                  onDestinationSelected: (int index) {
+                    setState(() {
+                      _currentIndex = index;
+                    });
+                  },
+                  labelType: NavigationRailLabelType.all,
+                  destinations: const [
+                    NavigationRailDestination(
+                      icon: Icon(Icons.home_outlined),
+                      selectedIcon: Icon(Icons.home),
+                      label: Text('Home'),
+                    ),
+                    NavigationRailDestination(
+                      icon: Icon(Icons.school_outlined),
+                      selectedIcon: Icon(Icons.school),
+                      label: Text('Courses'),
+                    ),
+                    NavigationRailDestination(
+                      icon: Icon(Icons.person_outline),
+                      selectedIcon: Icon(Icons.person),
+                      label: Text('Profile'),
+                    ),
+                  ],
+                ),
+                const VerticalDivider(thickness: 1, width: 1),
+                Expanded(child: _pages[_currentIndex]),
+              ],
+            ),
+          );
+        }
+
+        // TAMPILAN COMPACT / MEDIUM (< 840 px)
+        return Scaffold(
+          appBar: AppBar(
+            title: const Text('Course Explorer (Compact)'),
+            backgroundColor: Theme.of(context).colorScheme.inversePrimary,
           ),
-          NavigationDestination(
-            icon: Icon(Icons.school_outlined),
-            selectedIcon: Icon(Icons.school),
-            label: 'Courses',
+          body: _pages[_currentIndex],
+          bottomNavigationBar: NavigationBar(
+            selectedIndex: _currentIndex,
+            onDestinationSelected: (int index) {
+              setState(() {
+                _currentIndex = index;
+              });
+            },
+            destinations: const [
+              NavigationDestination(
+                icon: Icon(Icons.home_outlined),
+                selectedIcon: Icon(Icons.home),
+                label: 'Home',
+              ),
+              NavigationDestination(
+                icon: Icon(Icons.school_outlined),
+                selectedIcon: Icon(Icons.school),
+                label: 'Courses',
+              ),
+              NavigationDestination(
+                icon: Icon(Icons.person_outline),
+                selectedIcon: Icon(Icons.person),
+                label: 'Profile',
+              ),
+            ],
           ),
-          NavigationDestination(
-            icon: Icon(Icons.person_outline),
-            selectedIcon: Icon(Icons.person),
-            label: 'Profile',
-          ),
-        ],
-      ),
+        );
+      },
     );
   }
 }
@@ -85,14 +133,14 @@ class HomeScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
+    return SingleChildScrollView(
       padding: const EdgeInsets.all(16.0),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
             'Course Explorer Dashboard',
-            style: Theme.of(context).textTheme.titleLarge,
+            style: Theme.of(context).textTheme.headlineSmall,
           ),
           const SizedBox(height: 8),
           Container(
@@ -121,10 +169,10 @@ class HomeScreen extends StatelessWidget {
           const SizedBox(height: 16),
           const Card(
             child: ListTile(
-              leading: Icon(Icons.info_outline),
-              title: Text('Tahap 10: Navigasi Utama'),
+              leading: Icon(Icons.devices),
+              title: Text('Tahap 11: Adaptive Navigation'),
               subtitle: Text(
-                'Bilah navigasi di bawah berpindah halaman tanpa memicu route stack baru.',
+                'Layar < 840 px memakai NavigationBar di bawah.\nLayar >= 840 px beralih ke NavigationRail di samping.',
               ),
             ),
           ),
