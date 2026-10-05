@@ -4,48 +4,93 @@ const String studentName = 'I Kadek Dimas Pradana';
 const String studentId = '2415051046';
 
 void main() {
-  runApp(const TahapTujuhApp());
+  runApp(const TahapDelapanApp());
 }
 
-class TahapTujuhApp extends StatelessWidget {
-  const TahapTujuhApp({super.key});
+class TahapDelapanApp extends StatelessWidget {
+  const TahapDelapanApp({super.key});
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      title: 'Tahap 7 - Navigator Push & Pop',
+      title: 'Tahap 8 - Passing Data',
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xFF1E88E5)),
         useMaterial3: true,
       ),
-      home: const HomePage(),
+      home: const CourseListPage(),
     );
   }
 }
 
 // -------------------------------------------------------------
-// 1. HOME PAGE (Screen Awal)
+// 1. LIST SCREEN (Pengirim Data)
 // -------------------------------------------------------------
-class HomePage extends StatelessWidget {
-  const HomePage({super.key});
+class CourseListPage extends StatelessWidget {
+  const CourseListPage({super.key});
+
+  // Koleksi data kursus (Map<String, dynamic>) sesuai materi Tahap 8
+  final List<Map<String, dynamic>> courses = const [
+    {
+      'id': '1',
+      'title': 'Responsive Layout',
+      'code': 'MOB04',
+      'status': 'Active',
+      'credits': 3,
+      'description': 'Mempelajari cara membangun tata letak Flutter yang adaptif terhadap berbagai ukuran layar menggunakan MediaQuery dan LayoutBuilder.',
+    },
+    {
+      'id': '2',
+      'title': 'Navigation & Routing',
+      'code': 'MOB05',
+      'status': 'Planned',
+      'credits': 3,
+      'description': 'Konsep stack navigasi, pengiriman parameter antar screen, serta BottomNavigationBar dan NavigationRail.',
+    },
+    {
+      'id': '3',
+      'title': 'User Interaction',
+      'code': 'MOB06',
+      'status': 'Planned',
+      'credits': 2,
+      'description': 'Menangani interaksi sentuhan, gesture, tombol dinamis, dan dialog feedback bagi pengguna.',
+    },
+    {
+      'id': '4',
+      'title': 'Form & Validation',
+      'code': 'MOB07',
+      'status': 'Planned',
+      'credits': 3,
+      'description': 'Validasi formulir input pengguna secara terstruktur menggunakan Form, TextFormField, dan GlobalKey.',
+    },
+    {
+      'id': '5',
+      'title': 'State Management Basic',
+      'code': 'MOB08',
+      'status': 'Planned',
+      'credits': 3,
+      'description': 'Pengenalan siklus hidup widget dan pembaruan antarmuka secara reaktif.',
+    },
+  ];
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Tahap 7: Home Page'),
+        title: const Text('Tahap 8: Daftar Kursus'),
         backgroundColor: const Color(0xFF1565C0),
         foregroundColor: Colors.white,
       ),
       body: SafeArea(
         child: Padding(
-          padding: const EdgeInsets.all(20.0),
+          padding: const EdgeInsets.all(16.0),
           child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               // Header Identitas Mahasiswa
               Container(
+                width: double.infinity,
                 padding: const EdgeInsets.symmetric(
                   horizontal: 14,
                   vertical: 12,
@@ -68,71 +113,66 @@ class HomePage extends StatelessWidget {
                     ),
                     SizedBox(height: 4),
                     Text(
-                      'Praktikum Pertemuan 05: Navigation Stack (Push & Pop)',
+                      'Praktikum Pertemuan 05: Passing Data via Constructor',
                       style: TextStyle(color: Colors.black54, fontSize: 12),
                     ),
                   ],
                 ),
               ),
-              const SizedBox(height: 32),
+              const SizedBox(height: 16),
+              const Text(
+                'Pilih salah satu kursus untuk melihat detail:',
+                style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14),
+              ),
+              const SizedBox(height: 10),
 
-              Card(
-                elevation: 2,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Padding(
-                  padding: const EdgeInsets.all(20.0),
-                  child: Column(
-                    children: const [
-                      Icon(
-                        Icons.layers_outlined,
-                        size: 64,
-                        color: Color(0xFF1E88E5),
+              // Daftar Kursus (ListTile)
+              Expanded(
+                child: ListView.separated(
+                  itemCount: courses.length,
+                  separatorBuilder: (context, index) =>
+                      const SizedBox(height: 8),
+                  itemBuilder: (context, index) {
+                    final course = courses[index];
+                    return Card(
+                      elevation: 1.5,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10),
                       ),
-                      SizedBox(height: 12),
-                      Text(
-                        'Konsep Navigation Stack',
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
+                      child: ListTile(
+                        leading: CircleAvatar(
+                          backgroundColor: course['status'] == 'Active'
+                              ? Colors.green[100]
+                              : Colors.blueGrey[100],
+                          child: Icon(
+                            Icons.menu_book,
+                            color: course['status'] == 'Active'
+                                ? Colors.green[800]
+                                : Colors.blueGrey[800],
+                          ),
                         ),
+                        title: Text(
+                          course['title'],
+                          style: const TextStyle(fontWeight: FontWeight.bold),
+                        ),
+                        subtitle: Text(
+                          '${course['code']} • ${course['credits']} SKS',
+                        ),
+                        trailing: const Icon(Icons.arrow_forward_ios, size: 16),
+                        onTap: () {
+                          // Mengirim data Map course ke CourseDetailPage melalui constructor
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => CourseDetailPage(course: course),
+                            ),
+                          );
+                        },
                       ),
-                      SizedBox(height: 8),
-                      Text(
-                        'Tekan tombol di bawah untuk menambahkan (push) DetailPage ke puncak tumpukan navigasi.',
-                        textAlign: TextAlign.center,
-                        style: TextStyle(color: Colors.black54),
-                      ),
-                    ],
-                  ),
+                    );
+                  },
                 ),
               ),
-              const Spacer(),
-
-              // Tombol Navigator.push() menuju DetailPage
-              ElevatedButton.icon(
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF1E88E5),
-                  foregroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                ),
-                icon: const Icon(Icons.arrow_forward),
-                label: const Text(
-                  'Buka Detail',
-                  style: TextStyle(fontSize: 16),
-                ),
-                onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (context) => const DetailPage()),
-                  );
-                },
-              ),
-              const SizedBox(height: 20),
             ],
           ),
         ),
@@ -142,28 +182,30 @@ class HomePage extends StatelessWidget {
 }
 
 // -------------------------------------------------------------
-// 2. DETAIL PAGE (Screen Kedua)
+// 2. DETAIL SCREEN (Penerima Data via Constructor)
 // -------------------------------------------------------------
-class DetailPage extends StatelessWidget {
-  const DetailPage({super.key});
+class CourseDetailPage extends StatelessWidget {
+  final Map<String, dynamic> course;
+
+  const CourseDetailPage({super.key, required this.course});
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Detail Page'),
+        title: Text(course['title']),
         backgroundColor: const Color(0xFF1E88E5),
         foregroundColor: Colors.white,
-        // Tombol panah back otomatis dibuat oleh AppBar jika ada route sebelumnya di stack
       ),
       body: SafeArea(
-        child: Padding(
+        child: SingleChildScrollView(
           padding: const EdgeInsets.all(20.0),
           child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               // Identitas Mahasiswa di Detail Page
               Container(
+                width: double.infinity,
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
                   color: Colors.blue[50],
@@ -172,65 +214,59 @@ class DetailPage extends StatelessWidget {
                 child: const Text(
                   'Praktikan: $studentName ($studentId)',
                   style: TextStyle(
-                    fontWeight: FontWeight.w600,
+                    fontWeight: FontWeight.bold,
                     color: Color(0xFF0D47A1),
                   ),
                 ),
               ),
-              const SizedBox(height: 24),
-
-              Card(
-                elevation: 2,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Padding(
-                  padding: const EdgeInsets.all(20.0),
-                  child: Column(
-                    children: const [
-                      Icon(
-                        Icons.check_circle_outline,
-                        size: 56,
-                        color: Colors.green,
-                      ),
-                      SizedBox(height: 12),
-                      Text(
-                        'Halaman Detail Berhasil Dibuka',
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      SizedBox(height: 8),
-                      Text(
-                        'Halaman ini berada di atas stack. Anda dapat kembali menggunakan tombol panah AppBar atau tombol Navigator.pop() di bawah.',
-                        textAlign: TextAlign.center,
-                        style: TextStyle(color: Colors.black54),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-              const Spacer(),
-
-              // Tombol Kembali Eksplisit menggunakan Navigator.pop()
-              OutlinedButton.icon(
-                style: OutlinedButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                ),
-                icon: const Icon(Icons.arrow_back),
-                label: const Text(
-                  'Kembali (Navigator.pop)',
-                  style: TextStyle(fontSize: 16),
-                ),
-                onPressed: () {
-                  Navigator.pop(context);
-                },
-              ),
               const SizedBox(height: 20),
+
+              // Detail Course yang Diterima
+              Text(
+                '${course['code']} - ${course['title']}',
+                style: const TextStyle(
+                  fontSize: 22,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              const SizedBox(height: 10),
+              Row(
+                children: [
+                  Chip(
+                    avatar: const Icon(Icons.credit_card, size: 16),
+                    label: Text('${course['credits']} SKS'),
+                  ),
+                  const SizedBox(width: 8),
+                  Chip(
+                    backgroundColor: course['status'] == 'Active'
+                        ? Colors.green[100]
+                        : Colors.grey[200],
+                    label: Text(
+                      course['status'],
+                      style: TextStyle(
+                        color: course['status'] == 'Active'
+                            ? Colors.green[900]
+                            : Colors.black87,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              const Divider(height: 32),
+              const Text(
+                'Deskripsi Mata Kuliah:',
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                course['description'] ?? 'Tidak ada deskripsi tersedia.',
+                style: const TextStyle(
+                  fontSize: 15,
+                  height: 1.5,
+                  color: Colors.black87,
+                ),
+              ),
             ],
           ),
         ),
