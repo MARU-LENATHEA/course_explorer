@@ -4,254 +4,174 @@ const String studentName = 'I Kadek Dimas Pradana';
 const String studentId = '2415051046';
 
 void main() {
-  runApp(const TahapLimaApp());
+  runApp(const TahapEnamApp());
 }
 
-class TahapLimaApp extends StatelessWidget {
-  const TahapLimaApp({super.key});
+class TahapEnamApp extends StatelessWidget {
+  const TahapEnamApp({super.key});
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      title: 'Tahap 5 - Responsive GridView',
+      title: 'Tahap 6 - Scrollable Content',
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xFF1E88E5)),
         useMaterial3: true,
       ),
-      home: const ResponsiveGridPage(),
+      home: const ScrollableFormPage(),
     );
   }
 }
 
-// Model data kursus
-class CourseItem {
-  final String title;
-  final String code;
-  final String status;
-  final int credits;
+class ScrollableFormPage extends StatefulWidget {
+  const ScrollableFormPage({super.key});
 
-  const CourseItem({
-    required this.title,
-    required this.code,
-    required this.status,
-    required this.credits,
-  });
+  @override
+  State<ScrollableFormPage> createState() => _ScrollableFormPageState();
 }
 
-class ResponsiveGridPage extends StatelessWidget {
-  const ResponsiveGridPage({super.key});
+class _ScrollableFormPageState extends State<ScrollableFormPage> {
+  final TextEditingController _bioController = TextEditingController();
+  final TextEditingController _feedbackController = TextEditingController();
 
-  // Koleksi data kursus minimal 5 item
-  final List<CourseItem> courses = const [
-    CourseItem(
-      title: 'Responsive Layout',
-      code: 'MOB04',
-      status: 'Active',
-      credits: 3,
-    ),
-    CourseItem(
-      title: 'Navigation & Routing',
-      code: 'MOB05',
-      status: 'Planned',
-      credits: 3,
-    ),
-    CourseItem(
-      title: 'User Interaction',
-      code: 'MOB06',
-      status: 'Planned',
-      credits: 2,
-    ),
-    CourseItem(
-      title: 'Form & Validation',
-      code: 'MOB07',
-      status: 'Planned',
-      credits: 3,
-    ),
-    CourseItem(
-      title: 'State Management',
-      code: 'MOB08',
-      status: 'Planned',
-      credits: 3,
-    ),
-  ];
+  @override
+  void dispose() {
+    _bioController.dispose();
+Berikut adalah kelanjutan kode lengkap untuk **Tahap 6. Scrollable Content dan Keyboard**[cite: 1]:
 
-  // Logika penentuan jumlah kolom sesuai instruksi praktikum
-  int _columnsFor(double width) {
-    if (width < 600) return 1;
-    if (width < 840) return 2;
-    return 3;
+```dart
+    _feedbackController.dispose();
+    super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Tahap 5: GridView Responsif'),
+        title: const Text('Tahap 6: Scroll & Keyboard'),
         backgroundColor: const Color(0xFF1565C0),
         foregroundColor: Colors.white,
       ),
-      body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Header Identitas Mahasiswa
-              Container(
-                width: double.infinity,
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 14,
-                  vertical: 12,
-                ),
-                decoration: BoxDecoration(
-                  color: Colors.blue[50],
-                  borderRadius: BorderRadius.circular(10),
-                  border: Border.all(color: Colors.blue.shade200),
-                ),
+      // SingleChildScrollView mencegah error keyboard overflow
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            // Header Identitas Mahasiswa
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+              decoration: BoxDecoration(
+                color: Colors.blue[50],
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(color: Colors.blue.shade200),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: const [
+                  Text(
+                    '$studentId - $studentName',
+                    style: TextStyle(
+                      fontSize: 15,
+                      fontWeight: FontWeight.bold,
+                      color: Color(0xFF0D47A1),
+                    ),
+                  ),
+                  SizedBox(height: 4),
+                  Text(
+                    'Praktikum Pertemuan 05: SingleChildScrollView Handling',
+                    style: TextStyle(color: Colors.black54, fontSize: 12),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 20),
+
+            // Bagian Profil Mahasiswa
+            Center(
+              child: Column(
+                children: [
+                  CircleAvatar(
+                    radius: 45,
+                    backgroundColor: Colors.blue.shade700,
+                    child: const Icon(Icons.person, size: 55, color: Colors.white),
+                  ),
+                  const SizedBox(height: 10),
+                  const Text(
+                    studentName,
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                  ),
+                  const SizedBox(height: 4),
+                  const Text(
+                    'NIM: $studentId',
+                    style: TextStyle(fontSize: 14, color: Colors.black54),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 24),
+
+            // Card Form Input Profil & Feedback
+            Card(
+              elevation: 2,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              child: Padding(
+                padding: const EdgeInsets.all(16.0),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
-                  children: const [
-                    Text(
-                      '$studentId - $studentName',
-                      style: TextStyle(
-                        fontSize: 15,
-                        fontWeight: FontWeight.bold,
-                        color: Color(0xFF0D47A1),
+                  children: [
+                    const Text(
+                      'Form Evaluasi & Catatan Belajar',
+                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                    ),
+                    const SizedBox(height: 16),
+                    TextField(
+                      controller: _bioController,
+                      decoration: const InputDecoration(
+                        labelText: 'Minat / Spesialisasi',
+                        hintText: 'Contoh: Mobile Development, UI/UX',
+                        border: OutlineInputBorder(),
+                        prefixIcon: Icon(Icons.school_outlined),
                       ),
                     ),
-                    SizedBox(height: 4),
-                    Text(
-                      'Praktikum Pertemuan 05: Dynamic Column GridView',
-                      style: TextStyle(color: Colors.black54, fontSize: 12),
+                    const SizedBox(height: 16),
+                    TextField(
+                      controller: _feedbackController,
+                      maxLines: 4,
+                      decoration: const InputDecoration(
+                        labelText: 'Catatan Kendala & Masukan Praktikum',
+                        hintText: 'Tuliskan catatan layout atau keyboard handling di sini...',
+                        border: OutlineInputBorder(),
+                        alignLabelWithHint: true,
+                      ),
+                    ),
+                    const SizedBox(height: 20),
+                    ElevatedButton.icon(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFF1E88E5),
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                      ),
+                      onPressed: () {
+                        FocusScope.of(context).unfocus(); // Menutup keyboard
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text('Catatan profil berhasil disimpan!'),
+                            backgroundColor: Colors.green,
+                          ),
+                        );
+                      },
+                      icon: const Icon(Icons.save),
+                      label: const Text('Simpan Data', style: TextStyle(fontSize: 16)),
                     ),
                   ],
                 ),
               ),
-              const SizedBox(height: 16),
-
-              // LayoutBuilder untuk membaca lebar ruang parent secara lokal
-              Expanded(
-                child: LayoutBuilder(
-                  builder: (context, constraints) {
-                    final int cols = _columnsFor(constraints.maxWidth);
-                    final String layoutCategory = constraints.maxWidth < 600
-                        ? 'Compact ($cols Kolom)'
-                        : (constraints.maxWidth < 840
-                              ? 'Medium ($cols Kolom)'
-                              : 'Expanded ($cols Kolom)');
-
-                    return Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Kategori Tampilan: $layoutCategory (Lebar: ${constraints.maxWidth.toStringAsFixed(1)} px)',
-                          style: const TextStyle(
-                            fontSize: 14,
-                            fontWeight: FontWeight.w600,
-                            color: Colors.black87,
-                          ),
-                        ),
-                        const SizedBox(height: 12),
-                        Expanded(
-                          child: GridView.builder(
-                            gridDelegate:
-                                SliverGridDelegateWithFixedCrossAxisCount(
-                                  crossAxisCount: cols,
-                                  crossAxisSpacing: 12,
-                                  mainAxisSpacing: 12,
-                                  // Rasio aspek disesuaikan agar card proporsional di setiap ukuran
-                                  childAspectRatio: cols == 1
-                                      ? 2.8
-                                      : (cols == 2 ? 2.0 : 1.7),
-                                ),
-                            itemCount: courses.length,
-                            itemBuilder: (context, index) {
-                              final course = courses[index];
-                              return Card(
-                                elevation: 2,
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(12),
-                                ),
-                                child: Padding(
-                                  padding: const EdgeInsets.all(14.0),
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    mainAxisAlignment:
-                                        MainAxisAlignment.spaceBetween,
-                                    children: [
-                                      Row(
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.spaceBetween,
-                                        children: [
-                                          Expanded(
-                                            child: Text(
-                                              course.title,
-                                              style: const TextStyle(
-                                                fontSize: 15,
-                                                fontWeight: FontWeight.bold,
-                                                color: Color(0xFF0D47A1),
-                                              ),
-                                              overflow: TextOverflow.ellipsis,
-                                            ),
-                                          ),
-                                          const Icon(
-                                            Icons.school_outlined,
-                                            color: Colors.blueAccent,
-                                          ),
-                                        ],
-                                      ),
-                                      Row(
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.spaceBetween,
-                                        children: [
-                                          Text(
-                                            '${course.code} • ${course.credits} SKS',
-                                            style: TextStyle(
-                                              color: Colors.grey[700],
-                                              fontWeight: FontWeight.w500,
-                                            ),
-                                          ),
-                                          Container(
-                                            padding: const EdgeInsets.symmetric(
-                                              horizontal: 8,
-                                              vertical: 3,
-                                            ),
-                                            decoration: BoxDecoration(
-                                              color: course.status == 'Active'
-                                                  ? Colors.green[50]
-                                                  : Colors.blueGrey[50],
-                                              borderRadius:
-                                                  BorderRadius.circular(6),
-                                            ),
-                                            child: Text(
-                                              course.status,
-                                              style: TextStyle(
-                                                color: course.status == 'Active'
-                                                    ? Colors.green[700]
-                                                    : Colors.blueGrey[700],
-                                                fontWeight: FontWeight.bold,
-                                                fontSize: 11,
-                                              ),
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              );
-                            },
-                          ),
-                        ),
-                      ],
-                    );
-                  },
-                ),
-              ),
-            ],
-          ),
+            ),
+            const SizedBox(height: 30),
+          ],
         ),
       ),
     );
