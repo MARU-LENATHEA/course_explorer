@@ -123,7 +123,7 @@ class _AdaptiveNavigationShellState extends State<AdaptiveNavigationShell> {
   }
 }
 
-// 1. Tampilan Halaman Home
+// 1. Screen Home
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
 
@@ -165,10 +165,10 @@ class HomeScreen extends StatelessWidget {
           const SizedBox(height: 16),
           const Card(
             child: ListTile(
-              leading: Icon(Icons.touch_app),
-              title: Text('Tahap 12: Interaksi Pengguna'),
+              leading: Icon(Icons.edit_note),
+              title: Text('Tahap 13: Form Input & Validasi'),
               subtitle: Text(
-                'Buka menu Courses untuk mencoba interaksi Tap (InkWell), Tombol Favorite (IconButton), dan Long Press (GestureDetector).',
+                'Buka tab Profile untuk mengisi form feedback dengan validasi karakter minimal.',
               ),
             ),
           ),
@@ -178,7 +178,7 @@ class HomeScreen extends StatelessWidget {
   }
 }
 
-// 2. Tampilan Halaman Courses dengan Interaksi Tap, Favorite, dan Long Press
+// 2. Screen Courses
 class CoursesScreen extends StatefulWidget {
   const CoursesScreen({super.key});
 
@@ -187,7 +187,6 @@ class CoursesScreen extends StatefulWidget {
 }
 
 class _CoursesScreenState extends State<CoursesScreen> {
-  // Data mata kuliah dengan state isFavorite
   final List<Map<String, dynamic>> _courses = [
     {
       'code': 'MOB04',
@@ -209,7 +208,8 @@ class _CoursesScreenState extends State<CoursesScreen> {
       'name': 'Interaction',
       'status': 'Planned',
       'isFavorite': false,
-      'desc': 'Eksplorasi InkWell, GestureDetector, tombol, form, dan dialog feedback.',
+      'desc':
+          'Eksplorasi InkWell, GestureDetector, tombol, form, dan feedback.',
     },
   ];
 
@@ -224,48 +224,14 @@ class _CoursesScreenState extends State<CoursesScreen> {
 
         return Card(
           margin: const EdgeInsets.symmetric(vertical: 6),
-          clipBehavior: Clip.antiAlias, // Memastikan efek ripple InkWell rapi
+          clipBehavior: Clip.antiAlias,
           child: InkWell(
-            // Aksi Tap dengan efek ripple Material
             onTap: () {
               ScaffoldMessenger.of(context).hideCurrentSnackBar();
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
                   content: Text('Course diklik: ${course['name']}'),
                   duration: const Duration(seconds: 1),
-                ),
-              );
-            },
-            // Aksi Long Press menggunakan GestureDetector bawaan atau InkWell onLongPress
-            onLongPress: () {
-              showDialog(
-                context: context,
-                builder: (ctx) => AlertDialog(
-                  title: Text(course['name']),
-                  content: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text('Kode: ${course['code']}'),
-                      const SizedBox(height: 6),
-                      Text('Deskripsi: ${course['desc']}'),
-                      const Divider(height: 16),
-                      Text(
-                        'Praktikan: $studentName ($studentId)',
-                        style: const TextStyle(
-                          fontSize: 12,
-                          color: Colors.blueGrey,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ],
-                  ),
-                  actions: [
-                    TextButton(
-                      onPressed: () => Navigator.pop(ctx),
-                      child: const Text('Tutup'),
-                    ),
-                  ],
                 ),
               );
             },
@@ -300,7 +266,6 @@ class _CoursesScreenState extends State<CoursesScreen> {
                       ],
                     ),
                   ),
-                  // Tombol Favorite dengan pengubahan boolean state
                   IconButton(
                     icon: Icon(
                       isFav ? Icons.favorite : Icons.favorite_border,
@@ -310,17 +275,6 @@ class _CoursesScreenState extends State<CoursesScreen> {
                       setState(() {
                         course['isFavorite'] = !isFav;
                       });
-                      ScaffoldMessenger.of(context).hideCurrentSnackBar();
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: Text(
-                            !isFav
-                                ? 'Menambahkan ${course['name']} ke favorit'
-                                : 'Menghapus ${course['name']} dari favorit',
-                          ),
-                          duration: const Duration(seconds: 1),
-                        ),
-                      );
                     },
                   ),
                 ],
@@ -333,43 +287,172 @@ class _CoursesScreenState extends State<CoursesScreen> {
   }
 }
 
-// 3. Tampilan Halaman Profile
-class ProfileScreen extends StatelessWidget {
+// 3. Screen Profile dengan Form Input & Validasi Feedback
+class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
 
   @override
+  State<ProfileScreen> createState() => _ProfileScreenState();
+}
+
+class _ProfileScreenState extends State<ProfileScreen> {
+  final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
+  late final TextEditingController _nameController;
+  late final TextEditingController _idController;
+  final TextEditingController _commentController = TextEditingController();
+
+  String? _submittedFeedback;
+
+  @override
+  void initState() {
+    super.initState();
+    // Inisialisasi controller dengan nilai default identitas praktikan
+    _nameController = TextEditingController(text: studentName);
+    _idController = TextEditingController(text: studentId);
+  }
+
+  @override
+  void dispose() {
+    _nameController.dispose();
+    _idController.dispose();
+    _commentController.dispose();
+    super.dispose();
+  }
+
+  void _submitForm() {
+    // Validasi form sebelum memproses data
+    if (_formKey.currentState!.validate()) {
+      setState(() {
+        _submittedFeedback = _commentController.text.trim();
+      });
+      ScaffoldMessenger.of(context).hideCurrentSnackBar();
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Feedback berhasil divalidasi dan disimpan!'),
+          backgroundColor: Colors.green,
+        ),
+      );
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(24.0),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            CircleAvatar(
-              radius: 44,
-              backgroundColor: Colors.blue.shade100,
-              child: const Icon(Icons.person, size: 50, color: Colors.blue),
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(16.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Center(
+            child: Column(
+              children: [
+                CircleAvatar(
+                  radius: 36,
+                  backgroundColor: Colors.blue.shade100,
+                  child: const Icon(Icons.person, size: 40, color: Colors.blue),
+                ),
+                const SizedBox(height: 10),
+                Text(
+                  studentName,
+                  style: Theme.of(context).textTheme.titleMedium
+                      ?.copyWith(fontWeight: FontWeight.bold),
+                ),
+                Text(
+                  'NIM: $studentId',
+                  style: Theme.of(context).textTheme.bodyMedium
+                      ?.copyWith(color: Colors.grey.shade700),
+                ),
+              ],
             ),
+          ),
+          const SizedBox(height: 20),
+          Card(
+            elevation: 2,
+            child: Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Form(
+                key: _formKey,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Text(
+                      'Form Feedback Praktikum',
+                      style: Theme.of(context).textTheme.titleMedium
+                          ?.copyWith(fontWeight: FontWeight.bold),
+                    ),
+                    const SizedBox(height: 16),
+                    TextFormField(
+                      controller: _nameController,
+                      decoration: const InputDecoration(
+                        labelText: 'Nama Praktikan',
+                        border: OutlineInputBorder(),
+                        prefixIcon: Icon(Icons.person),
+                      ),
+                      validator: (value) {
+                        if (value == null || value.trim().isEmpty) {
+                          return 'Nama wajib diisi';
+                        }
+                        return null;
+                      },
+                    ),
+                    const SizedBox(height: 12),
+                    TextFormField(
+                      controller: _idController,
+                      decoration: const InputDecoration(
+                        labelText: 'NIM',
+                        border: OutlineInputBorder(),
+                        prefixIcon: Icon(Icons.badge),
+                      ),
+                      validator: (value) {
+                        if (value == null || value.trim().isEmpty) {
+                          return 'NIM wajib diisi';
+                        }
+                        return null;
+                      },
+                    ),
+                    const SizedBox(height: 12),
+                    TextFormField(
+                      controller: _commentController,
+                      maxLines: 3,
+                      decoration: const InputDecoration(
+                        labelText: 'Komentar / Feedback',
+                        hintText:
+                            'Tulis komentar praktikum minimal 5 karakter...',
+                        border: OutlineInputBorder(),
+                        prefixIcon: Icon(Icons.chat),
+                      ),
+                      validator: (value) {
+                        if (value == null || value.trim().isEmpty) {
+                          return 'Komentar wajib diisi';
+                        }
+                        if (value.trim().length < 5) {
+                          return 'Komentar wajib minimal 5 karakter';
+                        }
+                        return null;
+                      },
+                    ),
+                    const SizedBox(height: 16),
+                    FilledButton.icon(
+                      onPressed: _submitForm,
+                      icon: const Icon(Icons.send),
+                      label: const Text('Kirim Feedback'),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+          if (_submittedFeedback != null) ...[
             const SizedBox(height: 16),
-            Text(
-              studentName,
-              style: Theme.of(context).textTheme.titleLarge
-                  ?.copyWith(fontWeight: FontWeight.bold),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 6),
-            Text(
-              'NIM: $studentId',
-              style: Theme.of(context).textTheme.bodyLarge
-                  ?.copyWith(color: Colors.grey.shade700),
-            ),
-            const SizedBox(height: 16),
-            const Chip(
-              avatar: Icon(Icons.school, size: 16),
-              label: Text('Teknik Informatika'),
+            Card(
+              color: Colors.green.shade50,
+              child: ListTile(
+                leading: const Icon(Icons.check_circle, color: Colors.green),
+                title: const Text('Hasil Feedback Terkirim:'),
+                subtitle: Text('"${_submittedFeedback!}"'),
+              ),
             ),
           ],
-        ),
+        ],
       ),
     );
   }
