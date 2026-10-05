@@ -165,10 +165,10 @@ class HomeScreen extends StatelessWidget {
           const SizedBox(height: 16),
           const Card(
             child: ListTile(
-              leading: Icon(Icons.edit_note),
-              title: Text('Tahap 13: Form Input & Validasi'),
+              leading: Icon(Icons.feedback_outlined),
+              title: Text('Tahap 14: Feedback (SnackBar, Dialog, Loading)'),
               subtitle: Text(
-                'Buka tab Profile untuk mengisi form feedback dengan validasi karakter minimal.',
+                'Buka tab Profile untuk mencoba konfirmasi AlertDialog, animasi CircularProgressIndicator, dan notifikasi SnackBar.',
               ),
             ),
           ),
@@ -287,7 +287,7 @@ class _CoursesScreenState extends State<CoursesScreen> {
   }
 }
 
-// 3. Screen Profile dengan Form Input & Validasi Feedback
+// 3. Screen Profile dengan Validasi, AlertDialog, Loading, dan SnackBar
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
 
@@ -302,11 +302,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
   final TextEditingController _commentController = TextEditingController();
 
   String? _submittedFeedback;
+  bool _isLoading = false;
 
   @override
   void initState() {
     super.initState();
-    // Inisialisasi controller dengan nilai default identitas praktikan
     _nameController = TextEditingController(text: studentName);
     _idController = TextEditingController(text: studentId);
   }
@@ -319,20 +319,78 @@ class _ProfileScreenState extends State<ProfileScreen> {
     super.dispose();
   }
 
-  void _submitForm() {
-    // Validasi form sebelum memproses data
-    if (_formKey.currentState!.validate()) {
-      setState(() {
-        _submittedFeedback = _commentController.text.trim();
-      });
-      ScaffoldMessenger.of(context).hideCurrentSnackBar();
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Feedback berhasil divalidasi dan disimpan!'),
-          backgroundColor: Colors.green,
+  // Menampilkan dialog konfirmasi sebelum menyimpan
+  void _confirmAndSubmit() {
+    if (!_formKey.currentState!.validate()) return;
+
+    showDialog(
+      context: context,
+      builder: (BuildContext dialogContext) {
+        return AlertDialog(
+          title: const Text('Konfirmasi Pengiriman'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text('Apakah Anda yakin data feedback sudah sesuai?'),
+              const SizedBox(height: 12),
+              Text(
+                'Pengirim: ${_nameController.text} (${_idController.text})',
+                style: const TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(dialogContext),
+              child: const Text('Batal'),
+            ),
+            FilledButton(
+              onPressed: () {
+                Navigator.pop(dialogContext); // Tutup dialog
+                _processSubmission(); // Jalankan proses loading & simpan
+              },
+              child: const Text('Kirim Sekarang'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  // Simulasi proses asinkron dengan loading indicator
+  Future<void> _processSubmission() async {
+    setState(() {
+      _isLoading = true;
+    });
+
+    // Simulasi delay jaringan/pemrosesan selama 1.5 detik
+    await Future.delayed(const Duration(milliseconds: 1500));
+
+    if (!mounted) return;
+
+    setState(() {
+      _isLoading = false;
+      _submittedFeedback = _commentController.text.trim();
+    });
+
+    // Menampilkan SnackBar umpan balik sukses
+    ScaffoldMessenger.of(context).hideCurrentSnackBar();
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('Feedback berhasil disimpan untuk $studentName!'),
+        backgroundColor: Colors.green.shade700,
+        behavior: SnackBarBehavior.floating,
+        action: SnackBarAction(
+          label: 'OK',
+          textColor: Colors.white,
+          onPressed: () {},
         ),
-      );
-    }
+      ),
+    );
   }
 
   @override
@@ -387,12 +445,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         border: OutlineInputBorder(),
                         prefixIcon: Icon(Icons.person),
                       ),
-                      validator: (value) {
-                        if (value == null || value.trim().isEmpty) {
-                          return 'Nama wajib diisi';
-                        }
-                        return null;
-                      },
+                      validator: (value) =>
+                          value == null || value.trim().isEmpty
+                          ? 'Nama wajib diisi'
+                          : null,
                     ),
                     const SizedBox(height: 12),
                     TextFormField(
@@ -402,12 +458,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         border: OutlineInputBorder(),
                         prefixIcon: Icon(Icons.badge),
                       ),
-                      validator: (value) {
-                        if (value == null || value.trim().isEmpty) {
-                          return 'NIM wajib diisi';
-                        }
-                        return null;
-                      },
+                      validator: (value) =>
+                          value == null || value.trim().isEmpty
+                          ? 'NIM wajib diisi'
+                          : null,
                     ),
                     const SizedBox(height: 12),
                     TextFormField(
@@ -416,7 +470,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       decoration: const InputDecoration(
                         labelText: 'Komentar / Feedback',
                         hintText:
-                            'Tulis komentar praktikum minimal 5 karakter...',
+                            'Tulis tanggapan praktikum (minimal 5 karakter)...',
                         border: OutlineInputBorder(),
                         prefixIcon: Icon(Icons.chat),
                       ),
@@ -431,10 +485,25 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       },
                     ),
                     const SizedBox(height: 16),
-                    FilledButton.icon(
-                      onPressed: _submitForm,
-                      icon: const Icon(Icons.send),
-                      label: const Text('Kirim Feedback'),
+                    FilledButton(
+                      onPressed: _isLoading ? null : _confirmAndSubmit,
+                      child: _isLoading
+                          ? const SizedBox(
+                              height: 20,
+                              width: 20,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2.5,
+                                color: Colors.white,
+                              ),
+                            )
+                          : const Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(Icons.send),
+                                SizedBox(width: 8),
+                                Text('Kirim Feedback'),
+                              ],
+                            ),
                     ),
                   ],
                 ),
@@ -447,7 +516,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
               color: Colors.green.shade50,
               child: ListTile(
                 leading: const Icon(Icons.check_circle, color: Colors.green),
-                title: const Text('Hasil Feedback Terkirim:'),
+                title: const Text('Feedback Terkonfirmasi:'),
                 subtitle: Text('"${_submittedFeedback!}"'),
               ),
             ),
