@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-// Identitas Mahasiswa Praktikan
+// Identitas Mahasiswa Praktikan (Wajib ditampilkan)
 const String studentName = 'I Kadek Dimas Pradana';
 const String studentId = '2415051046';
 
@@ -14,22 +14,50 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Tahap 1 - Local vs Shared State',
+      title: 'Tahap 2 - Keterbatasan setState & Prop Drilling',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(useMaterial3: true, colorSchemeSeed: Colors.blue),
-      home: const StateIdentificationScreen(),
+      home: const ParentStateDemoPage(),
     );
   }
 }
 
-class StateIdentificationScreen extends StatelessWidget {
-  const StateIdentificationScreen({super.key});
+// =========================================================================
+// PARENT WIDGET: Pemilik State (State Owner)
+// =========================================================================
+class ParentStateDemoPage extends StatefulWidget {
+  const ParentStateDemoPage({super.key});
+
+  @override
+  State<ParentStateDemoPage> createState() => _ParentStateDemoPageState();
+}
+
+class _ParentStateDemoPageState extends State<ParentStateDemoPage> {
+  // STATE OWNER: Disimpan di parent karena dibutuhkan oleh dua child berbeda
+  final Set<String> _favoriteCourseCodes = {};
+
+  final List<Map<String, String>> _courses = const [
+    {'code': 'MOB04', 'name': 'Responsive Layout', 'status': 'done'},
+    {'code': 'MOB05', 'name': 'Dart Fundamentals', 'status': 'done'},
+    {'code': 'MOB06', 'name': 'State Management', 'status': 'active'},
+  ];
+
+  // Callback action untuk toggle favorit
+  void _toggleFavorite(String code) {
+    setState(() {
+      if (_favoriteCourseCodes.contains(code)) {
+        _favoriteCourseCodes.remove(code);
+      } else {
+        _favoriteCourseCodes.add(code);
+      }
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Course Explorer - Tahap 1'),
+        title: const Text('Tahap 2: Masalah setState'),
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
       ),
       body: SingleChildScrollView(
@@ -37,7 +65,7 @@ class StateIdentificationScreen extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Header Identitas Praktikan
+            // Identitas Mahasiswa
             Container(
               width: double.infinity,
               padding: const EdgeInsets.all(12),
@@ -63,24 +91,26 @@ class StateIdentificationScreen extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 16),
+
+            // CHILD 1: Menerima count via constructor (Prop Drilling)
+            CoursesSummary(
+              totalCourses: _courses.length,
+              totalFavorites: _favoriteCourseCodes.length,
+            ),
+            const SizedBox(height: 16),
+
             Text(
-              'Implementasi Local State (setState)',
-              style: Theme.of(context).textTheme.titleMedium
+              'Daftar Course (Meneruskan callback ke child bertingkat):',
+              style: Theme.of(context).textTheme.titleSmall
                   ?.copyWith(fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 8),
-            // Widget dengan Local State (Expandable Card)
-            const CourseLocalStateCard(
-              code: 'MOB04',
-              title: 'Responsive Layout',
-              status: 'active',
-              description: 'Materi ini mencakup teknik adaptasi ukuran layar, penggunaan MediaQuery, LayoutBuilder, dan penyusunan breakpoint aplikasi multi-screen.',
-            ),
-            const CourseLocalStateCard(
-              code: 'MOB05',
-              title: 'State Management & Architecture',
-              status: 'active',
-              description: 'Membahas pemisahan local state dan shared state, penggunaan ChangeNotifier, Provider, serta refactoring folder architecture.',
+
+            // CHILD 2: Menerima list data, set favorit, dan callback function
+            CourseList(
+              courses: _courses,
+              favoriteCodes: _favoriteCourseCodes,
+              onToggleFavorite: _toggleFavorite,
             ),
           ],
         ),
@@ -89,91 +119,143 @@ class StateIdentificationScreen extends StatelessWidget {
   }
 }
 
-// Widget Stateful untuk menangani Local State sementara (Expand/Collapse)
-class CourseLocalStateCard extends StatefulWidget {
-  final String code;
-  final String title;
-  final String status;
-  final String description;
+// =========================================================================
+// CHILD 1: Widget Ringkasan (Hanya membaca state)
+// =========================================================================
+class CoursesSummary extends StatelessWidget {
+  final int totalCourses;
+  final int totalFavorites;
 
-  const CourseLocalStateCard({
+  const CoursesSummary({
     super.key,
-    required this.code,
-    required this.title,
-    required this.status,
-    required this.description,
+    required this.totalCourses,
+    required this.totalFavorites,
   });
 
   @override
-  State<CourseLocalStateCard> createState() => _CourseLocalStateCardState();
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        Expanded(
+          child: Card(
+            color: Colors.blue.shade50,
+            child: Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Column(
+                children: [
+                  const Text(
+                    'Courses',
+                    style: TextStyle(color: Colors.blueGrey),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    '$totalCourses',
+                    style: const TextStyle(
+                      fontSize: 24,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+        const SizedBox(width: 12),
+        Expanded(
+          child: Card(
+            color: Colors.red.shade50,
+            child: Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Column(
+                children: [
+                  const Text(
+                    'Favorites',
+                    style: TextStyle(color: Colors.redAccent),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    '$totalFavorites',
+                    style: const TextStyle(
+                      fontSize: 24,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.red,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
 }
 
-class _CourseLocalStateCardState extends State<CourseLocalStateCard> {
-  // LOCAL STATE: Hanya dibutuhkan oleh kartu ini sendiri
-  bool _isExpanded = false;
+// =========================================================================
+// CHILD 2: List Widget (Meneruskan props ke level kartu / item)
+// =========================================================================
+class CourseList extends StatelessWidget {
+  final List<Map<String, String>> courses;
+  final Set<String> favoriteCodes;
+  final Function(String) onToggleFavorite;
+
+  const CourseList({
+    super.key,
+    required this.courses,
+    required this.favoriteCodes,
+    required this.onToggleFavorite,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: courses.map((course) {
+        final String code = course['code']!;
+        final bool isFav = favoriteCodes.contains(code);
+
+        // Prop drilling berlanjut ke CourseItemRow
+        return CourseItemRow(
+          code: code,
+          name: course['name']!,
+          status: course['status']!,
+          isFavorite: isFav,
+          onTapFavorite: () => onToggleFavorite(code),
+        );
+      }).toList(),
+    );
+  }
+}
+
+// CHILD DARI CHILD: Menerima callback dari CourseList yang diteruskan dari Parent
+class CourseItemRow extends StatelessWidget {
+  final String code;
+  final String name;
+  final String status;
+  final bool isFavorite;
+  final VoidCallback onTapFavorite;
+
+  const CourseItemRow({
+    super.key,
+    required this.code,
+    required this.name,
+    required this.status,
+    required this.isFavorite,
+    required this.onTapFavorite,
+  });
 
   @override
   Widget build(BuildContext context) {
     return Card(
-      elevation: 2,
-      margin: const EdgeInsets.symmetric(vertical: 8),
-      child: Padding(
-        padding: const EdgeInsets.all(12.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        widget.title,
-                        style: const TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        '${widget.code} • ${widget.status}',
-                        style: TextStyle(
-                          color: Colors.grey.shade700,
-                          fontSize: 13,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                // Tombol aksi yang mengubah local state via setState()
-                IconButton(
-                  icon: Icon(
-                    _isExpanded ? Icons.expand_less : Icons.expand_more,
-                  ),
-                  onPressed: () {
-                    setState(() {
-                      _isExpanded = !_isExpanded;
-                    });
-                  },
-                ),
-              ],
-            ),
-            // Tampilan conditional rendering berbasis local state
-            if (_isExpanded) ...[
-              const Divider(height: 16),
-              Text(
-                widget.description,
-                style: const TextStyle(fontSize: 14, height: 1.3),
-              ),
-              const SizedBox(height: 4),
-              const Text(
-                'Status: Terbuka via local state (setState)',
-                style: TextStyle(fontSize: 12, color: Colors.blueGrey),
-              ),
-            ],
-          ],
+      margin: const EdgeInsets.symmetric(vertical: 4),
+      child: ListTile(
+        title: Text(name, style: const TextStyle(fontWeight: FontWeight.bold)),
+        subtitle: Text('$code • $status'),
+        trailing: IconButton(
+          icon: Icon(
+            isFavorite ? Icons.favorite : Icons.favorite_border,
+            color: isFavorite ? Colors.red : Colors.grey,
+          ),
+          onPressed: onTapFavorite, // Menembak callback ke atas
         ),
       ),
     );
