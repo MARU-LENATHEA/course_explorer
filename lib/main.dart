@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 
-// Identitas Mahasiswa Praktikan
-const String studentName = 'I Kadek Dimas Pradana';
-const String studentId = '2415051046';
+import 'course_provider.dart';
 
 void main() {
   runApp(const MyApp());
@@ -14,143 +12,151 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Tahap 4 - ValueNotifier',
+      title: 'Tahap 5 - ChangeNotifier',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(useMaterial3: true, colorSchemeSeed: Colors.blue),
-      home: const ValueNotifierDemoPage(),
+      home: const ChangeNotifierDemoPage(),
     );
   }
 }
 
-class ValueNotifierDemoPage extends StatefulWidget {
-  const ValueNotifierDemoPage({super.key});
+class ChangeNotifierDemoPage extends StatefulWidget {
+  const ChangeNotifierDemoPage({super.key});
 
   @override
-  State<ValueNotifierDemoPage> createState() => _ValueNotifierDemoPageState();
+  State<ChangeNotifierDemoPage> createState() => _ChangeNotifierDemoPageState();
 }
 
-class _ValueNotifierDemoPageState extends State<ValueNotifierDemoPage> {
-  // 1. Deklarasi ValueNotifier<int> untuk memantau jumlah favorit
-  final ValueNotifier<int> favoriteCounter = ValueNotifier<int>(0);
+class _ChangeNotifierDemoPageState extends State<ChangeNotifierDemoPage> {
+  // Instansiasi objek ChangeNotifier
+  final CourseProvider _courseProvider = CourseProvider();
+
+  final List<Map<String, String>> _courses = const [
+    {'code': 'MOB04', 'title': 'Responsive Layout', 'status': 'done'},
+    {'code': 'MOB05', 'title': 'Multi-Screen Navigation', 'status': 'done'},
+    {
+      'code': 'MOB06',
+      'title': 'State Management & Architecture',
+      'status': 'active',
+    },
+  ];
 
   @override
   void dispose() {
-    // Wajib dispose ValueNotifier saat widget dihancurkan
-    favoriteCounter.dispose();
+    _courseProvider.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    // Pembuktian: build() utama ini TIDAK dipanggil ulang saat counter berubah
-    debugPrint('Building ValueNotifierDemoPage scaffold...');
-
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Tahap 4: ValueNotifier'),
+        title: const Text('Tahap 5: ChangeNotifier'),
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            // Header Identitas Praktikan
-            Container(
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: Colors.blue.shade50,
-                borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: Colors.blue.shade200),
-              ),
-              child: Row(
-                children: [
-                  const Icon(Icons.person, color: Colors.blue),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: Text(
-                      'Praktikan: $studentName ($studentId)',
-                      style: TextStyle(
+      // ListenableBuilder mendengarkan notifyListeners() dari _courseProvider
+      body: ListenableBuilder(
+        listenable: _courseProvider,
+        builder: (context, child) {
+          return Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Header Identitas Praktikan
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: Colors.blue.shade50,
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: Colors.blue.shade200),
+                  ),
+                  child: Row(
+                    children: [
+                      const Icon(Icons.person, color: Colors.blue),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          'Praktikan: $studentName ($studentId)',
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            color: Colors.blue.shade900,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 16),
+
+                // Ringkasan Jumlah Favorit dari CourseProvider
+                Card(
+                  color: Colors.red.shade50,
+                  child: ListTile(
+                    leading: const Icon(Icons.favorite, color: Colors.red),
+                    title: const Text(
+                      'Total Favorites (ChangeNotifier)',
+                      style: TextStyle(fontWeight: FontWeight.bold),
+                    ),
+                    trailing: Text(
+                      '${_courseProvider.favorites.length}',
+                      style: const TextStyle(
+                        fontSize: 22,
                         fontWeight: FontWeight.bold,
-                        color: Colors.blue.shade900,
+                        color: Colors.red,
                       ),
                     ),
                   ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 20),
+                ),
+                const SizedBox(height: 16),
 
-            // 2. Menggunakan ValueListenableBuilder agar hanya bagian ini yang di-rebuild
-            Card(
-              elevation: 2,
-              color: Colors.red.shade50,
-              child: Padding(
-                padding: const EdgeInsets.all(20.0),
-                child: Column(
-                  children: [
-                    const Icon(Icons.favorite, color: Colors.red, size: 42),
-                    const SizedBox(height: 8),
-                    const Text(
-                      'Total Course Favorit Dipantau:',
-                      style: TextStyle(fontSize: 14),
-                    ),
-                    const SizedBox(height: 6),
-                    ValueListenableBuilder<int>(
-                      valueListenable: favoriteCounter,
-                      builder: (context, value, child) {
-                        return Text(
-                          '$value',
-                          style: TextStyle(
-                            fontSize: 36,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.red.shade900,
+                Text(
+                  'Daftar Course:',
+                  style: Theme.of(context).textTheme.titleMedium
+                      ?.copyWith(fontWeight: FontWeight.bold),
+                ),
+                const SizedBox(height: 8),
+
+                // Daftar Course yang terhubung ke CourseProvider
+                Expanded(
+                  child: ListView.builder(
+                    itemCount: _courses.length,
+                    itemBuilder: (context, index) {
+                      final course = _courses[index];
+                      final code = course['code']!;
+                      final isFav = _courseProvider.isFavorite(code);
+
+                      return Card(
+                        margin: const EdgeInsets.symmetric(vertical: 4),
+                        child: ListTile(
+                          leading: CircleAvatar(
+                            backgroundColor: Colors.blue.shade100,
+                            child: Text('${index + 1}'),
                           ),
-                        );
-                      },
-                    ),
-                  ],
-                ),
-              ),
-            ),
-            const SizedBox(height: 20),
-
-            // 3. Tombol pengubah nilai ValueNotifier tanpa setState()
-            Row(
-              children: [
-                Expanded(
-                  child: OutlinedButton.icon(
-                    onPressed: () {
-                      if (favoriteCounter.value > 0) {
-                        favoriteCounter.value--;
-                      }
+                          title: Text(
+                            course['title']!,
+                            style: const TextStyle(fontWeight: FontWeight.bold),
+                          ),
+                          subtitle: Text('$code • ${course['status']}'),
+                          trailing: IconButton(
+                            icon: Icon(
+                              isFav ? Icons.favorite : Icons.favorite_border,
+                              color: isFav ? Colors.red : Colors.grey,
+                            ),
+                            onPressed: () {
+                              _courseProvider.toggleFavorite(code);
+                            },
+                          ),
+                        ),
+                      );
                     },
-                    icon: const Icon(Icons.remove),
-                    label: const Text('Kurangi'),
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: FilledButton.icon(
-                    onPressed: () {
-                      favoriteCounter.value++;
-                    },
-                    icon: const Icon(Icons.add),
-                    label: const Text('Tambah Favorit'),
                   ),
                 ),
               ],
             ),
-            const SizedBox(height: 12),
-            TextButton.icon(
-              onPressed: () {
-                favoriteCounter.value = 0;
-              },
-              icon: const Icon(Icons.refresh),
-              label: const Text('Reset ke 0'),
-            ),
-          ],
-        ),
+          );
+        },
       ),
     );
   }
