@@ -10,43 +10,43 @@ class FavoritesScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('My Favorites'),
-        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-      ),
-      body: Consumer<CourseProvider>(
-        builder: (context, provider, child) {
-          // Menyaring course yang kodenya ada di dalam set favorites
-          final favoriteCourses = provider.courses
-              .where((course) => provider.isFavorite(course.code))
-              .toList();
+    return Consumer<CourseProvider>(
+      builder: (context, provider, child) {
+        final favoriteCourses = provider.courses
+            .where((course) => provider.isFavorite(course.code))
+            .toList();
 
-          if (favoriteCourses.isEmpty) {
-            return const Center(
-              child: Text(
-                'Belum ada course favorit.',
-                style: TextStyle(fontSize: 16, color: Colors.grey),
-              ),
-            );
-          }
-
-          return ListView.builder(
-            padding: const EdgeInsets.all(16),
-            itemCount: favoriteCourses.length,
-            itemBuilder: (context, index) {
-              final Course course = favoriteCourses[index];
-              return CourseCard(
-                course: course,
-                isFavorite: true,
-                onFavoriteToggle: () {
-                  provider.toggleFavorite(course.code);
-                },
-              );
-            },
+        if (favoriteCourses.isEmpty) {
+          return const Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(Icons.favorite_border, size: 64, color: Colors.grey),
+                SizedBox(height: 12),
+                Text(
+                  'Belum ada course favorit.',
+                  style: TextStyle(fontSize: 16, color: Colors.grey),
+                ),
+              ],
+            ),
           );
-        },
-      ),
+        }
+
+        return ListView.builder(
+          padding: const EdgeInsets.all(16),
+          itemCount: favoriteCourses.length,
+          itemBuilder: (context, index) {
+            final Course course = favoriteCourses[index];
+            return CourseCard(
+              course: course,
+              isFavorite: true,
+              onFavoriteToggle: () {
+                provider.toggleFavorite(course.code);
+              },
+            );
+          },
+        );
+      },
     );
   }
 }

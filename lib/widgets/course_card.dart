@@ -26,8 +26,14 @@ class CourseCard extends StatelessWidget {
         final isFav = isFavorite ?? provider.isFavorite(course.code);
 
         return Card(
-          margin: const EdgeInsets.symmetric(vertical: 4),
-          child: ListTile(
+          elevation: 0,
+          margin: const EdgeInsets.symmetric(vertical: 6),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+            side: BorderSide(color: Colors.blue.shade100, width: 1.5),
+          ),
+          child: InkWell(
+            borderRadius: BorderRadius.circular(12),
             onTap: onTap ??
                 () {
                   Navigator.push(
@@ -37,26 +43,48 @@ class CourseCard extends StatelessWidget {
                     ),
                   );
                 },
-            leading: CircleAvatar(
-              backgroundColor: Colors.blue.shade100,
-              child: Text('${course.credits}'),
-            ),
-            title: Text(
-              course.title,
-              style: const TextStyle(fontWeight: FontWeight.bold),
-            ),
-            subtitle: Text(
-              '${course.code} • ${course.credits} SKS • Status: ${course.status}',
-            ),
-            trailing: IconButton(
-              icon: Icon(
-                isFav ? Icons.favorite : Icons.favorite_border,
-                color: isFav ? Colors.red : Colors.grey,
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          course.title,
+                          style: const TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                            color: Color(0xFF1E293B),
+                          ),
+                        ),
+                        const SizedBox(height: 6),
+                        Text(
+                          course.status,
+                          style: TextStyle(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w600,
+                            color: course.status.toLowerCase() == 'active'
+                                ? Colors.teal.shade700
+                                : Colors.green.shade700,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  IconButton(
+                    icon: Icon(
+                      isFav ? Icons.favorite : Icons.favorite_border,
+                      color: isFav ? Colors.red : Colors.grey.shade400,
+                    ),
+                    onPressed: onFavoriteToggle ??
+                        () {
+                          provider.toggleFavorite(course.code);
+                        },
+                  ),
+                ],
               ),
-              onPressed: onFavoriteToggle ??
-                  () {
-                    provider.toggleFavorite(course.code);
-                  },
             ),
           ),
         );
