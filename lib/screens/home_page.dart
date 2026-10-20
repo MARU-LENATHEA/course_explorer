@@ -4,6 +4,8 @@ import 'package:provider/provider.dart';
 import '../models/course.dart';
 import '../providers/course_provider.dart';
 import '../widgets/course_card.dart';
+import 'course_detail_screen.dart';
+import 'favorites_screen.dart';
 
 // Identitas Mahasiswa Praktikan
 const String studentName = 'I Kadek Dimas Pradana';
@@ -20,7 +22,7 @@ class _HomePageState extends State<HomePage> {
   @override
   void initState() {
     super.initState();
-    // Memuat data course secara otomatis saat halaman dibuka
+    // Memuat data course secara otomatis saat halaman pertama kali dibuka
     WidgetsBinding.instance.addPostFrameCallback((_) {
       context.read<CourseProvider>().loadCourses();
     });
@@ -30,15 +32,30 @@ class _HomePageState extends State<HomePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Course Explorer'),
+        title: const Text('Course Explorer v2 - Home'),
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
+        actions: [
+          // Tombol navigasi menuju ke halaman Favorites
+          IconButton(
+            icon: const Icon(Icons.bookmarks),
+            tooltip: 'Lihat Favorites',
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const FavoritesScreen(),
+                ),
+              );
+            },
+          ),
+        ],
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Header Identitas Praktikan
+            // Header Identitas Mahasiswa
             Container(
               width: double.infinity,
               padding: const EdgeInsets.all(12),
@@ -65,20 +82,21 @@ class _HomePageState extends State<HomePage> {
             ),
             const SizedBox(height: 16),
             Text(
-              'Daftar Course (Architecture Separation):',
-              style: Theme.of(context).textTheme.titleSmall
-                  ?.copyWith(fontWeight: FontWeight.bold),
+              'Daftar Seluruh Mata Kuliah:',
+              style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
             ),
             const SizedBox(height: 8),
             Expanded(
               child: Consumer<CourseProvider>(
                 builder: (context, provider, child) {
-                  // 1. Kondisi Loading
+                  // Kondisi Async State: Loading
                   if (provider.isLoading) {
                     return const Center(child: CircularProgressIndicator());
                   }
 
-                  // 2. Kondisi Error
+                  // Kondisi Async State: Error
                   if (provider.error != null) {
                     return Center(
                       child: Text(
@@ -89,17 +107,39 @@ class _HomePageState extends State<HomePage> {
                     );
                   }
 
-                  // 3. Kondisi Data Kosong
+                  // Kondisi Data Kosong
                   if (provider.courses.isEmpty) {
-                    return const Center(child: Text('Tidak ada data course.'));
+                    return const Center(
+                      child: Text('Tidak ada data course tersedia.'),
+                    );
                   }
 
-                  // 4. Kondisi Success (Menampilkan List Course menggunakan CourseCard)
+                  // Kondisi Success: Menampilkan List Course
                   return ListView.builder(
                     itemCount: provider.courses.length,
                     itemBuilder: (context, index) {
                       final Course course = provider.courses[index];
-                      return CourseCard(course: course);
+                      final isFav = provider.isFavorite(course.code);
+
+                      return InkWell(
+                        // Navigasi ke halaman detail saat kartu diklik
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) =>
+                                  CourseDetailScreen(course: course),
+                            ),
+                          );
+                        },
+                        child: CourseCard(
+                          course: course,
+                          isFavorite: isFav,
+                          onFavoriteToggle: () {
+                            provider.toggleFavorite(course.code);
+                          },
+                        ),
+                      );
                     },
                   );
                 },

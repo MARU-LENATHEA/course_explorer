@@ -11,7 +11,7 @@ class CourseRepository {
   // Menerima CourseService melalui constructor (Dependency Injection sederhana)
   CourseRepository(this.service);
 
-  // Method abstraksi untuk menyediakan data course ke layer di atasnya (Provider/ViewModel)
+  // Method abstraksi untuk menyediakan data course
   Future<List<Course>> getCourses() {
     return service.loadCourses();
   }
