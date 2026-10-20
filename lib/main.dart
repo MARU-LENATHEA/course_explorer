@@ -3,9 +3,12 @@ import 'package:provider/provider.dart';
 
 import 'course_provider.dart';
 
+// Identitas Mahasiswa Praktikan
+const String studentName = 'I Kadek Dimas Pradana';
+const String studentId = '2415051046';
+
 void main() {
   runApp(
-    // Membungkus aplikasi dengan ChangeNotifierProvider pada root widget tree
     ChangeNotifierProvider(
       create: (_) => CourseProvider(),
       child: const MyApp(),
@@ -19,16 +22,16 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Tahap 6 - Provider Setup',
+      title: 'Tahap 7 - watch, read, dan Consumer',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(useMaterial3: true, colorSchemeSeed: Colors.blue),
-      home: const ProviderSetupDemoPage(),
+      home: const WatchReadDemoPage(),
     );
   }
 }
 
-class ProviderSetupDemoPage extends StatelessWidget {
-  const ProviderSetupDemoPage({super.key});
+class WatchReadDemoPage extends StatelessWidget {
+  const WatchReadDemoPage({super.key});
 
   final List<Map<String, String>> _courses = const [
     {'code': 'MOB04', 'title': 'Responsive Layout', 'status': 'done'},
@@ -42,12 +45,9 @@ class ProviderSetupDemoPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Mengakses CourseProvider yang sudah disediakan di atas widget tree
-    final courseProvider = Provider.of<CourseProvider>(context);
-
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Tahap 6: Provider Setup'),
+        title: const Text('Tahap 7: watch, read & Consumer'),
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
       ),
       body: Padding(
@@ -82,25 +82,13 @@ class ProviderSetupDemoPage extends StatelessWidget {
             ),
             const SizedBox(height: 16),
 
-            // Kartu Status Provider
-            Card(
-              color: Colors.green.shade50,
-              child: ListTile(
-                leading: const Icon(Icons.check_circle, color: Colors.green),
-                title: const Text(
-                  'ChangeNotifierProvider Aktif',
-                  style: TextStyle(fontWeight: FontWeight.bold),
-                ),
-                subtitle: Text(
-                  'Jumlah Course Favorit: ${courseProvider.favorites.length}',
-                ),
-              ),
-            ),
+            // 1. WIDGET DENGAN context.watch(): Hanya widget kecil ini yang rebuild
+            const FavoriteCountHeader(),
             const SizedBox(height: 16),
 
             Text(
-              'Daftar Course (Diakses dari Provider):',
-              style: Theme.of(context).textTheme.titleMedium
+              'Daftar Course (Menggunakan Consumer & context.read):',
+              style: Theme.of(context).textTheme.titleSmall
                   ?.copyWith(fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 8),
@@ -111,7 +99,6 @@ class ProviderSetupDemoPage extends StatelessWidget {
                 itemBuilder: (context, index) {
                   final course = _courses[index];
                   final code = course['code']!;
-                  final isFav = courseProvider.isFavorite(code);
 
                   return Card(
                     margin: const EdgeInsets.symmetric(vertical: 4),
@@ -125,13 +112,22 @@ class ProviderSetupDemoPage extends StatelessWidget {
                         style: const TextStyle(fontWeight: FontWeight.bold),
                       ),
                       subtitle: Text('$code • ${course['status']}'),
-                      trailing: IconButton(
-                        icon: Icon(
-                          isFav ? Icons.favorite : Icons.favorite_border,
-                          color: isFav ? Colors.red : Colors.grey,
-                        ),
-                        onPressed: () {
-                          courseProvider.toggleFavorite(code);
+                      // 2. MENGGUNAKAN CONSUMER: Membatasi area rebuild hanya pada IconButton
+                      trailing: Consumer<CourseProvider>(
+                        builder: (context, provider, child) {
+                          final isFav = provider.isFavorite(code);
+                          return IconButton(
+                            icon: Icon(
+                              isFav ? Icons.favorite : Icons.favorite_border,
+                              color: isFav ? Colors.red : Colors.grey,
+                            ),
+                            // 3. MENGGUNAKAN context.read(): Memanggil aksi tanpa listen di callback
+                            onPressed: () {
+                              context.read<CourseProvider>().toggleFavorite(
+                                code,
+                              );
+                            },
+                          );
                         },
                       ),
                     ),
@@ -140,6 +136,37 @@ class ProviderSetupDemoPage extends StatelessWidget {
               ),
             ),
           ],
+        ),
+      ),
+    );
+  }
+}
+
+// Widget khusus yang menggunakan context.watch() untuk menampilkan jumlah favorit
+class FavoriteCountHeader extends StatelessWidget {
+  const FavoriteCountHeader({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    // context.watch() mendengarkan perubahan dan memicu rebuild pada widget ini
+    final provider = context.watch<CourseProvider>();
+
+    return Card(
+      color: Colors.red.shade50,
+      child: ListTile(
+        leading: const Icon(Icons.favorite, color: Colors.red),
+        title: const Text(
+          'Total Course Favorit (context.watch)',
+          style: TextStyle(fontWeight: FontWeight.bold),
+        ),
+        subtitle: Text('Dipantau oleh: $studentName'),
+        trailing: Text(
+          '${provider.favorites.length}',
+          style: const TextStyle(
+            fontSize: 24,
+            fontWeight: FontWeight.bold,
+            color: Colors.red,
+          ),
         ),
       ),
     );
