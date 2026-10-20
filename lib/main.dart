@@ -1,15 +1,33 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
-import 'models/course.dart';
 import 'services/course_service.dart';
 import 'repositories/course_repository.dart';
+import 'course_provider.dart' hide studentName, studentId;
+import 'models/course.dart';
 
 // Identitas Mahasiswa Praktikan
 const String studentName = 'I Kadek Dimas Pradana';
 const String studentId = '2415051046';
 
 void main() {
-  runApp(const MyApp());
+  runApp(
+    MultiProvider(
+      providers: [
+        // Menyediakan Service, Repository, dan Provider dengan Dependency Injection
+        Provider<CourseService>(create: (_) => CourseService()),
+        ProxyProvider<CourseService, CourseRepository>(
+          update: (_, service, __) => CourseRepository(service),
+        ),
+        ChangeNotifierProxyProvider<CourseRepository, CourseProvider>(
+          create: (context) => CourseProvider(context.read<CourseRepository>()),
+          update: (_, repository, provider) =>
+              provider ?? CourseProvider(repository),
+        ),
+      ],
+      child: const MyApp(),
+    ),
+  );
 }
 
 class MyApp extends StatelessWidget {
@@ -18,57 +36,36 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Tahap 9 - Repository Pattern',
+      title: 'Tahap 10 - Async State Provider',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(useMaterial3: true, colorSchemeSeed: Colors.blue),
-      home: const RepositoryDemoPage(),
+      home: const AsyncStateDemoPage(),
     );
   }
 }
 
-class RepositoryDemoPage extends StatefulWidget {
-  const RepositoryDemoPage({super.key});
+class AsyncStateDemoPage extends StatefulWidget {
+  const AsyncStateDemoPage({super.key});
 
   @override
-  State<RepositoryDemoPage> createState() => _RepositoryDemoPageState();
+  State<AsyncStateDemoPage> createState() => _AsyncStateDemoPageState();
 }
 
-class _RepositoryDemoPageState extends State<RepositoryDemoPage> {
-  // Menghubungkan Service ke Repository
-  late final CourseRepository _courseRepository;
-
-  List<Course> _courses = [];
-  bool _isLoading = true;
-  String? _errorMessage;
-
+class _AsyncStateDemoPageState extends State<AsyncStateDemoPage> {
   @override
   void initState() {
     super.initState();
-    // Inisialisasi repository dengan memasukkan instance service ke constructor
-    _courseRepository = CourseRepository(CourseService());
-    _fetchDataViaRepository();
-  }
-
-  Future<void> _fetchDataViaRepository() async {
-    try {
-      final courses = await _courseRepository.getCourses();
-      setState(() {
-        _courses = courses;
-        _isLoading = false;
-      });
-    } catch (e) {
-      setState(() {
-        _errorMessage = e.toString();
-        _isLoading = false;
-      });
-    }
+    // Memuat data course secara otomatis saat halaman pertama kali dibuka
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<CourseProvider>().loadCourses();
+    });
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Tahap 9: Repository Pattern'),
+        title: const Text('Tahap 10: Async State Provider'),
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
       ),
       body: Padding(
@@ -103,40 +100,73 @@ class _RepositoryDemoPageState extends State<RepositoryDemoPage> {
             ),
             const SizedBox(height: 16),
             Text(
-              'Daftar Course via CourseRepository:',
+              'Kelola Async State (Loading / Error / Success):',
               style: Theme.of(context).textTheme.titleSmall
                   ?.copyWith(fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 8),
             Expanded(
-              child: _isLoading
-                  ? const Center(child: CircularProgressIndicator())
-                  : _errorMessage != null
-                  ? Center(child: Text('Error: $_errorMessage'))
-                  : ListView.builder(
-                      itemCount: _courses.length,
-                      itemBuilder: (context, index) {
-                        final course = _courses[index];
-                        return Card(
-                          margin: const EdgeInsets.symmetric(vertical: 4),
-                          child: ListTile(
-                            leading: CircleAvatar(
-                              backgroundColor: Colors.blue.shade100,
-                              child: Text('${course.credits}'),
-                            ),
-                            title: Text(
-                              course.title,
-                              style: const TextStyle(
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                            subtitle: Text(
-                              '${course.code} • ${course.credits} SKS • Status: ${course.status}',
-                            ),
+              child: Consumer<CourseProvider>(
+                builder: (context, provider, child) {
+                  // 1. STATE: LOADING
+                  if (provider.isLoading) {
+                    return const Center(child: CircularProgressIndicator());
+                  }
+
+                  // 2. STATE: ERROR
+                  if (provider.error != null) {
+                    return Center(
+                      child: Text(
+                        'Terjadi Kesalahan:\n${provider.error}',
+                        textAlign: TextAlign.center,
+                        style: const TextStyle(color: Colors.red),
+                      ),
+                    );
+                  }
+
+                  // 3. STATE: SUCCESS / KOSONG
+                  if (provider.courses.isEmpty) {
+                    return const Center(
+                      child: Text('Tidak ada data course tersedia.'),
+                    );
+                  }
+
+                  // 4. STATE: SUCCESS DENGAN DATA
+                  return ListView.builder(
+                    itemCount: provider.courses.length,
+                    itemBuilder: (context, index) {
+                      final Course course = provider.courses[index];
+                      final isFav = provider.isFavorite(course.code);
+
+                      return Card(
+                        margin: const EdgeInsets.symmetric(vertical: 4),
+                        child: ListTile(
+                          leading: CircleAvatar(
+                            backgroundColor: Colors.blue.shade100,
+                            child: Text('${course.credits}'),
                           ),
-                        );
-                      },
-                    ),
+                          title: Text(
+                            course.title,
+                            style: const TextStyle(fontWeight: FontWeight.bold),
+                          ),
+                          subtitle: Text(
+                            '${course.code} • ${course.credits} SKS • Status: ${course.status}',
+                          ),
+                          trailing: IconButton(
+                            icon: Icon(
+                              isFav ? Icons.favorite : Icons.favorite_border,
+                              color: isFav ? Colors.red : Colors.grey,
+                            ),
+                            onPressed: () {
+                              provider.toggleFavorite(course.code);
+                            },
+                          ),
+                        ),
+                      );
+                    },
+                  );
+                },
+              ),
             ),
           ],
         ),

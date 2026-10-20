@@ -1,22 +1,46 @@
 import 'package:flutter/foundation.dart';
 
-export 'constans/student_identity.dart';
+import 'models/course.dart';
+import 'repositories/course_repository.dart';
+
+// Identitas Mahasiswa Praktikan
+const String studentName = 'I Kadek Dimas Pradana';
+const String studentId = '2415051046';
 
 class CourseProvider extends ChangeNotifier {
-  // Collection untuk menyimpan daftar kode course yang difavoritkan
-  final Set<String> favorites = {};
+  final CourseRepository repository;
 
-  // Helper untuk mengecek apakah course tertentu sudah favorit
+  CourseProvider(this.repository);
+
+  List<Course> courses = [];
+  Set<String> favorites = {};
+  bool isLoading = false;
+  String? error;
+
+  // Method untuk memuat data course secara async dengan penanganan loading & error
+  Future<void> loadCourses() async {
+    isLoading = true;
+    error = null;
+    notifyListeners();
+
+    try {
+      courses = await repository.getCourses();
+    } catch (e) {
+      error = e.toString();
+    } finally {
+      isLoading = false;
+      notifyListeners();
+    }
+  }
+
   bool isFavorite(String id) => favorites.contains(id);
 
-  // Method untuk mengubah state favorit dan memberi tahu listener
   void toggleFavorite(String id) {
     if (favorites.contains(id)) {
       favorites.remove(id);
     } else {
       favorites.add(id);
     }
-    // Wajib dipanggil agar UI yang mendengarkan ikut diperbarui
     notifyListeners();
   }
 }
