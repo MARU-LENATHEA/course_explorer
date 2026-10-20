@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'models/course.dart';
 import 'services/course_service.dart';
+import 'repositories/course_repository.dart';
 
 // Identitas Mahasiswa Praktikan
 const String studentName = 'I Kadek Dimas Pradana';
@@ -17,24 +18,24 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Tahap 8 - Service Data Source',
+      title: 'Tahap 9 - Repository Pattern',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(useMaterial3: true, colorSchemeSeed: Colors.blue),
-      home: const ServiceDemoPage(),
+      home: const RepositoryDemoPage(),
     );
   }
 }
 
-class ServiceDemoPage extends StatefulWidget {
-  const ServiceDemoPage({super.key});
+class RepositoryDemoPage extends StatefulWidget {
+  const RepositoryDemoPage({super.key});
 
   @override
-  State<ServiceDemoPage> createState() => _ServiceDemoPageState();
+  State<RepositoryDemoPage> createState() => _RepositoryDemoPageState();
 }
 
-class _ServiceDemoPageState extends State<ServiceDemoPage> {
-  // Instansiasi CourseService
-  final CourseService _courseService = CourseService();
+class _RepositoryDemoPageState extends State<RepositoryDemoPage> {
+  // Menghubungkan Service ke Repository
+  late final CourseRepository _courseRepository;
 
   List<Course> _courses = [];
   bool _isLoading = true;
@@ -43,12 +44,14 @@ class _ServiceDemoPageState extends State<ServiceDemoPage> {
   @override
   void initState() {
     super.initState();
-    _fetchCourses();
+    // Inisialisasi repository dengan memasukkan instance service ke constructor
+    _courseRepository = CourseRepository(CourseService());
+    _fetchDataViaRepository();
   }
 
-  Future<void> _fetchCourses() async {
+  Future<void> _fetchDataViaRepository() async {
     try {
-      final courses = await _courseService.loadCourses();
+      final courses = await _courseRepository.getCourses();
       setState(() {
         _courses = courses;
         _isLoading = false;
@@ -65,7 +68,7 @@ class _ServiceDemoPageState extends State<ServiceDemoPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Tahap 8: Course Service'),
+        title: const Text('Tahap 9: Repository Pattern'),
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
       ),
       body: Padding(
@@ -100,7 +103,7 @@ class _ServiceDemoPageState extends State<ServiceDemoPage> {
             ),
             const SizedBox(height: 16),
             Text(
-              'Daftar Course dari CourseService:',
+              'Daftar Course via CourseRepository:',
               style: Theme.of(context).textTheme.titleSmall
                   ?.copyWith(fontWeight: FontWeight.bold),
             ),
