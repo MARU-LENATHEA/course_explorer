@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-// Identitas Mahasiswa Praktikan (Wajib ditampilkan)
+// Identitas Mahasiswa Praktikan
 const String studentName = 'I Kadek Dimas Pradana';
 const String studentId = '2415051046';
 
@@ -14,58 +14,41 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Tahap 2 - Keterbatasan setState & Prop Drilling',
+      title: 'Tahap 3 - Lifting State Up',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(useMaterial3: true, colorSchemeSeed: Colors.blue),
-      home: const ParentStateDemoPage(),
+      home: const LiftingStatePage(),
     );
   }
 }
 
 // =========================================================================
-// PARENT WIDGET: Pemilik State (State Owner)
+// PARENT WIDGET: Single Source of Truth
 // =========================================================================
-class ParentStateDemoPage extends StatefulWidget {
-  const ParentStateDemoPage({super.key});
+class LiftingStatePage extends StatefulWidget {
+  const LiftingStatePage({super.key});
 
   @override
-  State<ParentStateDemoPage> createState() => _ParentStateDemoPageState();
+  State<LiftingStatePage> createState() => _LiftingStatePageState();
 }
 
-class _ParentStateDemoPageState extends State<ParentStateDemoPage> {
-  // STATE OWNER: Disimpan di parent karena dibutuhkan oleh dua child berbeda
-  final Set<String> _favoriteCourseCodes = {};
-
-  final List<Map<String, String>> _courses = const [
-    {'code': 'MOB04', 'name': 'Responsive Layout', 'status': 'done'},
-    {'code': 'MOB05', 'name': 'Dart Fundamentals', 'status': 'done'},
-    {'code': 'MOB06', 'name': 'State Management', 'status': 'active'},
-  ];
-
-  // Callback action untuk toggle favorit
-  void _toggleFavorite(String code) {
-    setState(() {
-      if (_favoriteCourseCodes.contains(code)) {
-        _favoriteCourseCodes.remove(code);
-      } else {
-        _favoriteCourseCodes.add(code);
-      }
-    });
-  }
+class _LiftingStatePageState extends State<LiftingStatePage> {
+  // SINGLE SOURCE OF TRUTH: Satu sumber state menjadi acuan bersama
+  bool favorite = false;
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Tahap 2: Masalah setState'),
+        title: const Text('Tahap 3: Lifting State Up'),
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
       ),
-      body: SingleChildScrollView(
+      body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Identitas Mahasiswa
+            // Header Identitas Praktikan
             Container(
               width: double.infinity,
               padding: const EdgeInsets.all(12),
@@ -92,25 +75,27 @@ class _ParentStateDemoPageState extends State<ParentStateDemoPage> {
             ),
             const SizedBox(height: 16),
 
-            // CHILD 1: Menerima count via constructor (Prop Drilling)
-            CoursesSummary(
-              totalCourses: _courses.length,
-              totalFavorites: _favoriteCourseCodes.length,
-            ),
+            // WIDGET 1: Menampilkan status favorit dari parent state
+            FavoriteStatusBanner(isFavorite: favorite),
             const SizedBox(height: 16),
 
             Text(
-              'Daftar Course (Meneruskan callback ke child bertingkat):',
+              'Course Card (Child menerima state & mengirim aksi lewat callback):',
               style: Theme.of(context).textTheme.titleSmall
                   ?.copyWith(fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 8),
 
-            // CHILD 2: Menerima list data, set favorit, dan callback function
-            CourseList(
-              courses: _courses,
-              favoriteCodes: _favoriteCourseCodes,
-              onToggleFavorite: _toggleFavorite,
+            // WIDGET 2: Sesuai contoh worksheet Tahap 3
+            CourseCard(
+              title: 'State Management & Architecture',
+              code: 'MOB06',
+              isFavorite: favorite,
+              onFavoriteChanged: () {
+                setState(() {
+                  favorite = !favorite;
+                });
+              },
             ),
           ],
         ),
@@ -120,142 +105,83 @@ class _ParentStateDemoPageState extends State<ParentStateDemoPage> {
 }
 
 // =========================================================================
-// CHILD 1: Widget Ringkasan (Hanya membaca state)
+// CHILD WIDGET 1: Banner Konsistensi Status
 // =========================================================================
-class CoursesSummary extends StatelessWidget {
-  final int totalCourses;
-  final int totalFavorites;
-
-  const CoursesSummary({
-    super.key,
-    required this.totalCourses,
-    required this.totalFavorites,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      children: [
-        Expanded(
-          child: Card(
-            color: Colors.blue.shade50,
-            child: Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Column(
-                children: [
-                  const Text(
-                    'Courses',
-                    style: TextStyle(color: Colors.blueGrey),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    '$totalCourses',
-                    style: const TextStyle(
-                      fontSize: 24,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ),
-        const SizedBox(width: 12),
-        Expanded(
-          child: Card(
-            color: Colors.red.shade50,
-            child: Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Column(
-                children: [
-                  const Text(
-                    'Favorites',
-                    style: TextStyle(color: Colors.redAccent),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    '$totalFavorites',
-                    style: const TextStyle(
-                      fontSize: 24,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.red,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-}
-
-// =========================================================================
-// CHILD 2: List Widget (Meneruskan props ke level kartu / item)
-// =========================================================================
-class CourseList extends StatelessWidget {
-  final List<Map<String, String>> courses;
-  final Set<String> favoriteCodes;
-  final Function(String) onToggleFavorite;
-
-  const CourseList({
-    super.key,
-    required this.courses,
-    required this.favoriteCodes,
-    required this.onToggleFavorite,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      children: courses.map((course) {
-        final String code = course['code']!;
-        final bool isFav = favoriteCodes.contains(code);
-
-        // Prop drilling berlanjut ke CourseItemRow
-        return CourseItemRow(
-          code: code,
-          name: course['name']!,
-          status: course['status']!,
-          isFavorite: isFav,
-          onTapFavorite: () => onToggleFavorite(code),
-        );
-      }).toList(),
-    );
-  }
-}
-
-// CHILD DARI CHILD: Menerima callback dari CourseList yang diteruskan dari Parent
-class CourseItemRow extends StatelessWidget {
-  final String code;
-  final String name;
-  final String status;
+class FavoriteStatusBanner extends StatelessWidget {
   final bool isFavorite;
-  final VoidCallback onTapFavorite;
 
-  const CourseItemRow({
+  const FavoriteStatusBanner({super.key, required this.isFavorite});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: isFavorite ? Colors.red.shade50 : Colors.grey.shade100,
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(
+          color: isFavorite ? Colors.red.shade300 : Colors.grey.shade300,
+        ),
+      ),
+      child: Row(
+        children: [
+          Icon(
+            isFavorite ? Icons.favorite : Icons.favorite_border,
+            color: isFavorite ? Colors.red : Colors.grey.shade700,
+          ),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Text(
+              isFavorite
+                  ? 'Single Source of Truth: FAVORITE AKTIF (true)'
+                  : 'Single Source of Truth: BELUM FAVORIT (false)',
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+                color: isFavorite ? Colors.red.shade900 : Colors.grey.shade800,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// =========================================================================
+// CHILD WIDGET 2: CourseCard (Stateless, tidak menyimpan salinan state)
+// =========================================================================
+class CourseCard extends StatelessWidget {
+  final String title;
+  final String code;
+  final bool isFavorite;
+  final VoidCallback onFavoriteChanged;
+
+  const CourseCard({
     super.key,
+    required this.title,
     required this.code,
-    required this.name,
-    required this.status,
     required this.isFavorite,
-    required this.onTapFavorite,
+    required this.onFavoriteChanged,
   });
 
   @override
   Widget build(BuildContext context) {
     return Card(
-      margin: const EdgeInsets.symmetric(vertical: 4),
+      elevation: 2,
       child: ListTile(
-        title: Text(name, style: const TextStyle(fontWeight: FontWeight.bold)),
-        subtitle: Text('$code • $status'),
+        leading: CircleAvatar(
+          backgroundColor: Colors.blue.shade100,
+          child: const Icon(Icons.school, color: Colors.blue),
+        ),
+        title: Text(title, style: const TextStyle(fontWeight: FontWeight.bold)),
+        subtitle: Text('Kode: $code • Praktikan: $studentId'),
         trailing: IconButton(
           icon: Icon(
             isFavorite ? Icons.favorite : Icons.favorite_border,
             color: isFavorite ? Colors.red : Colors.grey,
           ),
-          onPressed: onTapFavorite, // Menembak callback ke atas
+          onPressed: onFavoriteChanged, // Memanggil callback milik parent
         ),
       ),
     );
