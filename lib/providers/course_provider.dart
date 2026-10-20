@@ -1,7 +1,7 @@
 import 'package:flutter/foundation.dart';
 
-import 'models/course.dart';
-import 'repositories/course_repository.dart';
+import '../models/course.dart';
+import '../repositories/course_repository.dart';
 
 // Identitas Mahasiswa Praktikan
 const String studentName = 'I Kadek Dimas Pradana';
@@ -17,7 +17,7 @@ class CourseProvider extends ChangeNotifier {
   bool isLoading = false;
   String? error;
 
-  // Method untuk memuat data course secara async dengan penanganan loading & error
+  // Method Async State: Loading -> Success / Error
   Future<void> loadCourses() async {
     isLoading = true;
     error = null;
