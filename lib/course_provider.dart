@@ -1,8 +1,6 @@
 import 'package:flutter/foundation.dart';
 
-// Identitas Mahasiswa Praktikan
-const String studentName = 'I Kadek Dimas Pradana';
-const String studentId = '2415051046';
+export 'constans/student_identity.dart';
 
 class CourseProvider extends ChangeNotifier {
   // Collection untuk menyimpan daftar kode course yang difavoritkan
