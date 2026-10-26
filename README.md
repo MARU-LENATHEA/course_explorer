@@ -1,17 +1,11 @@
-# course_explorer
+# Course Explorer v2 - State Management & Architecture
 
-A new Flutter project.
+Praktikum Pemrograman Perangkat Bergerak (Mobile Programming)
 
-## Getting Started
+* **Nama:** I Kadek Dimas Pradana
+* **NIM:** 2415051046
+* **Program Studi:** Pendidikan Teknik Informatika
+* **Universitas:** Universitas Pendidikan Ganesha
 
-This project is a starting point for a Flutter application.
-
-A few resources to get you started if this is your first Flutter project:
-
-- [Learn Flutter](https://docs.flutter.dev/get-started/learn-flutter)
-- [Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Flutter learning resources](https://docs.flutter.dev/reference/learning-resources)
-
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+## Deskripsi Aplikasi
+Course Explorer v2 adalah aplikasi cross-platform berbasis Flutter yang menerapkan arsitektur berlapis (*Separation of Concerns*), *Repository Pattern*, pembacaan data asinkron dari aset JSON, serta manajemen state menggunakan paket `Provider`.

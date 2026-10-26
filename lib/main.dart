@@ -6,6 +6,10 @@ import 'repositories/course_repository.dart';
 import 'screens/home_page.dart';
 import 'services/course_service.dart';
 
+// Identitas Mahasiswa Praktikan
+const String studentName = 'I Kadek Dimas Pradana';
+const String studentId = '2415051046';
+
 void main() {
   runApp(
     MultiProvider(
