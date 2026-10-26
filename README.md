@@ -1,11 +1,20 @@
-# Course Explorer v2 - State Management & Architecture
-
-Praktikum Pemrograman Perangkat Bergerak (Mobile Programming)
+# Course Data Manager - REST API & Backend Integration
 
 * **Nama:** I Kadek Dimas Pradana
 * **NIM:** 2415051046
-* **Program Studi:** Pendidikan Teknik Informatika
-* **Universitas:** Universitas Pendidikan Ganesha
+* **Kelas:** PTI
 
-## Deskripsi Aplikasi
-Course Explorer v2 adalah aplikasi cross-platform berbasis Flutter yang menerapkan arsitektur berlapis (*Separation of Concerns*), *Repository Pattern*, pembacaan data asinkron dari aset JSON, serta manajemen state menggunakan paket `Provider`.
+---
+
+## Dokumentasi REST Endpoint (Tahap 1)
+* **Base URL:** `https://course-api-pearl.vercel.app`
+* **Endpoint URL:** `https://course-api-pearl.vercel.app/courses`
+* **HTTP Method:** `GET`
+* **Status Code:** `200 OK`
+* **Resource:** `courses`
+* **Field JSON:**
+  1. `id` (integer) - Identifier unik course
+  2. `code` (string) - Kode mata kuliah (contoh: "MOB01")
+  3. `title` (string) - Judul / nama course
+  4. `credits` (integer) - Jumlah SKS
+  5. `status` (string) - Status course (`planned`, `active`, `done`)
