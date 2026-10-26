@@ -22,18 +22,21 @@ void main() {
       expect(courseProvider.favorites.isEmpty, true);
     });
 
-    test('Toggle favorite should add and remove course id from favorites set', () {
-      const testCourseCode = 'MOB06';
+    test(
+      'Toggle favorite should add and remove course id from favorites set',
+      () {
+        const testCourseCode = 'MOB06';
 
-      // Uji penambahan ke favorite
-      courseProvider.toggleFavorite(testCourseCode);
-      expect(courseProvider.isFavorite(testCourseCode), true);
-      expect(courseProvider.favorites.contains(testCourseCode), true);
+        // Uji penambahan ke favorite
+        courseProvider.toggleFavorite(testCourseCode);
+        expect(courseProvider.isFavorite(testCourseCode), true);
+        expect(courseProvider.favorites.contains(testCourseCode), true);
 
-      // Uji penghapusan dari favorite
-      courseProvider.toggleFavorite(testCourseCode);
-      expect(courseProvider.isFavorite(testCourseCode), false);
-      expect(courseProvider.favorites.contains(testCourseCode), false);
-    });
+        // Uji penghapusan dari favorite
+        courseProvider.toggleFavorite(testCourseCode);
+        expect(courseProvider.isFavorite(testCourseCode), false);
+        expect(courseProvider.favorites.contains(testCourseCode), false);
+      },
+    );
   });
 }

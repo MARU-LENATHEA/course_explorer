@@ -4,10 +4,6 @@ import 'package:provider/provider.dart';
 import '../models/course.dart';
 import '../providers/course_provider.dart';
 
-// Identitas Mahasiswa
-const String studentName = 'I Kadek Dimas Pradana';
-const String studentId = '2415051046';
-
 class CourseDetailScreen extends StatelessWidget {
   final Course course;
 
@@ -18,10 +14,9 @@ class CourseDetailScreen extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: Text(course.title),
-        backgroundColor: const Color(0xFF1E88E5),
-        foregroundColor: Colors.white,
+        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
       ),
-      body: SingleChildScrollView(
+      body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -39,7 +34,7 @@ class CourseDetailScreen extends StatelessWidget {
                 '2415051046 • I Kadek Dimas Pradana',
                 style: TextStyle(
                   fontWeight: FontWeight.bold,
-                  color: Color(0xFF0D47A1),
+                  color: Colors.blue,
                 ),
               ),
             ),
@@ -53,30 +48,15 @@ class CourseDetailScreen extends StatelessWidget {
               'Kode Mata Kuliah: ${course.code}',
               style: const TextStyle(fontSize: 16),
             ),
-            const SizedBox(height: 4),
             Text(
               'Jumlah SKS: ${course.credits}',
               style: const TextStyle(fontSize: 16),
             ),
-            const SizedBox(height: 4),
             Text(
               'Status: ${course.status}',
               style: const TextStyle(fontSize: 16),
             ),
-            if (course.description != null &&
-                course.description!.isNotEmpty) ...[
-              const Divider(height: 28),
-              const Text(
-                'Deskripsi:',
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-              ),
-              const SizedBox(height: 6),
-              Text(
-                course.description!,
-                style: const TextStyle(fontSize: 14, height: 1.5),
-              ),
-            ],
-            const SizedBox(height: 32),
+            const Spacer(),
 
             // Tombol Toggle Favorite yang tersinkronisasi lintas screen
             Consumer<CourseProvider>(
@@ -84,17 +64,11 @@ class CourseDetailScreen extends StatelessWidget {
                 final isFav = provider.isFavorite(course.code);
                 return ElevatedButton.icon(
                   style: ElevatedButton.styleFrom(
-                    backgroundColor:
-                        isFav ? Colors.red.shade50 : Colors.blue.shade50,
-                    foregroundColor: isFav ? Colors.red : Colors.blue.shade800,
+                    backgroundColor: isFav
+                        ? Colors.red.shade50
+                        : Colors.blue.shade50,
+                    foregroundColor: isFav ? Colors.red : Colors.blue,
                     minimumSize: const Size(double.infinity, 48),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8),
-                      side: BorderSide(
-                        color:
-                            isFav ? Colors.red.shade200 : Colors.blue.shade200,
-                      ),
-                    ),
                   ),
                   onPressed: () {
                     provider.toggleFavorite(course.code);
@@ -102,7 +76,6 @@ class CourseDetailScreen extends StatelessWidget {
                   icon: Icon(isFav ? Icons.favorite : Icons.favorite_border),
                   label: Text(
                     isFav ? 'Hapus dari Favorites' : 'Tambah ke Favorites',
-                    style: const TextStyle(fontWeight: FontWeight.bold),
                   ),
                 );
               },
