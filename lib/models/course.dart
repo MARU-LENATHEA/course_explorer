@@ -1,43 +1,39 @@
-class Course {
-  final String? id;
-  final String title;
-  final String code;
-  final String status;
-  final String? description;
-  final int credits;
-  bool isFavorite;
+// Identitas Mahasiswa Praktikan
+const String studentName = 'I Kadek Dimas Pradana';
+const String studentId = '2415051046';
 
-  Course({
+class Course {
+  final int? id;
+  final String code;
+  final String title;
+  final int credits;
+  final String status;
+
+  const Course({
     this.id,
-    required this.title,
     required this.code,
-    required this.status,
-    this.description,
+    required this.title,
     required this.credits,
-    this.isFavorite = false,
+    this.status = 'planned',
   });
 
+  // Factory constructor untuk mapping dari Map JSON ke Objek Dart
   factory Course.fromJson(Map<String, dynamic> json) {
     return Course(
-      id: json['id']?.toString(),
-      title: json['title'] as String,
+      id: json['id'] as int?,
       code: json['code'] as String,
-      status: json['status'] as String,
-      description: json['description'] as String?,
+      title: json['title'] as String,
       credits: json['credits'] as int,
-      isFavorite: json['isFavorite'] as bool? ?? false,
+      status: (json['status'] as String?) ?? 'planned',
     );
   }
 
-  Map<String, dynamic> toJson() {
-    return {
-      if (id != null) 'id': id,
-      'title': title,
-      'code': code,
-      'status': status,
-      if (description != null) 'description': description,
-      'credits': credits,
-      'isFavorite': isFavorite,
-    };
-  }
+  // Method untuk serialisasi objek Dart ke Map JSON
+  Map<String, dynamic> toJson() => {
+    if (id != null) 'id': id,
+    'code': code,
+    'title': title,
+    'credits': credits,
+    'status': status,
+  };
 }

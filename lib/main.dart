@@ -3,12 +3,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 
-// Identitas Mahasiswa Praktikan
-const String studentName = 'I Kadek Dimas Pradana';
-const String studentId = '2415051046';
-
-// Endpoint Resmi Course API dari Postman Collection
-const String apiUrl = 'https://course-api-pearl.vercel.app/courses';
+import 'models/course.dart';
 
 void main() {
   runApp(const MyApp());
@@ -20,23 +15,25 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Tahap 2 - HTTP GET',
+      title: 'Tahap 3 - Model Dart',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(useMaterial3: true, colorSchemeSeed: Colors.blue),
-      home: const HttpGetPage(),
+      home: const CourseModelTestPage(),
     );
   }
 }
 
-class HttpGetPage extends StatefulWidget {
-  const HttpGetPage({super.key});
+class CourseModelTestPage extends StatefulWidget {
+  const CourseModelTestPage({super.key});
 
   @override
-  State<HttpGetPage> createState() => _HttpGetPageState();
+  State<CourseModelTestPage> createState() => _CourseModelTestPageState();
 }
 
-class _HttpGetPageState extends State<HttpGetPage> {
-  List<dynamic> _courses = [];
+class _CourseModelTestPageState extends State<CourseModelTestPage> {
+  static const String apiUrl = 'https://course-api-pearl.vercel.app/courses';
+
+  List<Course> _courses = [];
   bool _isLoading = true;
   String? _errorMessage;
 
@@ -46,7 +43,6 @@ class _HttpGetPageState extends State<HttpGetPage> {
     _fetchCourses();
   }
 
-  // Fungsi asynchronous pemanggilan HTTP GET
   Future<void> _fetchCourses() async {
     setState(() {
       _isLoading = true;
@@ -57,8 +53,14 @@ class _HttpGetPageState extends State<HttpGetPage> {
       final response = await http.get(Uri.parse(apiUrl));
       if (response.statusCode == 200) {
         final List<dynamic> data = jsonDecode(response.body) as List<dynamic>;
+
+        // Mapping JSON List menjadi List<Course>
+        final List<Course> mappedCourses = data
+            .map((item) => Course.fromJson(item as Map<String, dynamic>))
+            .toList();
+
         setState(() {
-          _courses = data;
+          _courses = mappedCourses;
           _isLoading = false;
         });
       } else {
@@ -72,16 +74,28 @@ class _HttpGetPageState extends State<HttpGetPage> {
     }
   }
 
+  Color _getStatusColor(String status) {
+    switch (status.toLowerCase()) {
+      case 'active':
+        return Colors.green.shade100;
+      case 'done':
+        return Colors.blue.shade100;
+      case 'planned':
+      default:
+        return Colors.orange.shade100;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Tahap 2: HTTP GET Request'),
+        title: const Text('Tahap 3: Model Course & JSON'),
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
         actions: [
           IconButton(
             icon: const Icon(Icons.refresh),
-            tooltip: 'Refresh Data',
+            tooltip: 'Refresh',
             onPressed: _fetchCourses,
           ),
         ],
@@ -118,61 +132,58 @@ class _HttpGetPageState extends State<HttpGetPage> {
             ),
             const SizedBox(height: 16),
             Text(
-              'Target Endpoint: $apiUrl',
-              style: const TextStyle(fontSize: 12, color: Colors.grey),
+              'Daftar Course (Terkonversi ke List<Course>):',
+              style: Theme.of(context).textTheme.titleSmall
+                  ?.copyWith(fontWeight: FontWeight.bold),
             ),
-            const SizedBox(height: 4),
-            Text(
-              'Jumlah Item: ${_courses.length} course',
-              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-            ),
-            const Divider(height: 24),
+            const SizedBox(height: 8),
             Expanded(
               child: _isLoading
                   ? const Center(child: CircularProgressIndicator())
                   : _errorMessage != null
                   ? Center(
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          const Icon(
-                            Icons.error_outline,
-                            color: Colors.red,
-                            size: 48,
-                          ),
-                          const SizedBox(height: 8),
-                          Text(
-                            _errorMessage!,
-                            textAlign: TextAlign.center,
-                            style: const TextStyle(color: Colors.red),
-                          ),
-                          const SizedBox(height: 12),
-                          ElevatedButton(
-                            onPressed: _fetchCourses,
-                            child: const Text('Coba Lagi'),
-                          ),
-                        ],
+                      child: Text(
+                        'Error: $_errorMessage',
+                        textAlign: TextAlign.center,
+                        style: const TextStyle(color: Colors.red),
                       ),
                     )
                   : ListView.builder(
                       itemCount: _courses.length,
                       itemBuilder: (context, index) {
-                        final item = _courses[index] as Map<String, dynamic>;
+                        final Course course = _courses[index];
                         return Card(
                           margin: const EdgeInsets.symmetric(vertical: 4),
                           child: ListTile(
                             leading: CircleAvatar(
                               backgroundColor: Colors.blue.shade100,
-                              child: Text('${item['credits']}'),
+                              child: Text('${course.credits}'),
                             ),
                             title: Text(
-                              item['title'] ?? '',
+                              course.title,
                               style: const TextStyle(
                                 fontWeight: FontWeight.bold,
                               ),
                             ),
                             subtitle: Text(
-                              'Kode: ${item['code']} • Status: ${item['status']}',
+                              'Kode: ${course.code} • ${course.credits} SKS',
+                            ),
+                            trailing: Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 8,
+                                vertical: 4,
+                              ),
+                              decoration: BoxDecoration(
+                                color: _getStatusColor(course.status),
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              child: Text(
+                                course.status,
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.w600,
+                                  fontSize: 12,
+                                ),
+                              ),
                             ),
                           ),
                         );
