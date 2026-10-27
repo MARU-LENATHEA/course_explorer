@@ -4,8 +4,14 @@ import 'package:provider/provider.dart';
 import '../models/course.dart';
 import '../providers/course_provider.dart';
 
+// Identitas Mahasiswa Praktikan
+const String studentName = 'I Kadek Dimas Pradana';
+const String studentId = '2415051046';
+
 class CourseFormPage extends StatefulWidget {
-  const CourseFormPage({super.key});
+  final Course? course; // Jika null -> Create, Jika ada -> Edit
+
+  const CourseFormPage({super.key, this.course});
 
   @override
   State<CourseFormPage> createState() => _CourseFormPageState();
@@ -13,11 +19,24 @@ class CourseFormPage extends StatefulWidget {
 
 class _CourseFormPageState extends State<CourseFormPage> {
   final _formKey = GlobalKey<FormState>();
-  final _codeController = TextEditingController();
-  final _titleController = TextEditingController();
-  final _creditsController = TextEditingController();
-  String _selectedStatus = 'planned';
+  late final TextEditingController _codeController;
+  late final TextEditingController _titleController;
+  late final TextEditingController _creditsController;
+  late String _selectedStatus;
   bool _isSaving = false;
+
+  bool get isEditMode => widget.course != null;
+
+  @override
+  void initState() {
+    super.initState();
+    _codeController = TextEditingController(text: widget.course?.code ?? '');
+    _titleController = TextEditingController(text: widget.course?.title ?? '');
+    _creditsController = TextEditingController(
+      text: widget.course?.credits.toString() ?? '',
+    );
+    _selectedStatus = widget.course?.status ?? 'planned';
+  }
 
   @override
   void dispose() {
@@ -32,7 +51,8 @@ class _CourseFormPageState extends State<CourseFormPage> {
 
     setState(() => _isSaving = true);
 
-    final newCourse = Course(
+    final courseData = Course(
+      id: widget.course?.id,
       code: _codeController.text.trim(),
       title: _titleController.text.trim(),
       credits: int.parse(_creditsController.text.trim()),
@@ -40,13 +60,27 @@ class _CourseFormPageState extends State<CourseFormPage> {
     );
 
     try {
-      await context.read<CourseProvider>().createCourse(newCourse);
+      if (isEditMode) {
+        if (widget.course?.id == null) {
+          throw Exception('ID course tidak valid untuk operasi edit');
+        }
+        await context.read<CourseProvider>().updateCourse(
+          widget.course!.id!,
+          courseData,
+        );
+      } else {
+        await context.read<CourseProvider>().createCourse(courseData);
+      }
 
       if (!mounted) return;
 
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Course baru berhasil ditambahkan!'),
+        SnackBar(
+          content: Text(
+            isEditMode
+                ? 'Course berhasil diperbarui!'
+                : 'Course baru berhasil ditambahkan!',
+          ),
           backgroundColor: Colors.green,
         ),
       );
@@ -56,7 +90,7 @@ class _CourseFormPageState extends State<CourseFormPage> {
 
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Gagal menyimpan course: $e'),
+          content: Text('Gagal menyimpan perubahan: $e'),
           backgroundColor: Colors.red,
         ),
       );
@@ -71,7 +105,7 @@ class _CourseFormPageState extends State<CourseFormPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Tambah Course Baru'),
+        title: Text(isEditMode ? 'Edit Course' : 'Tambah Course'),
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
       ),
       body: SingleChildScrollView(
@@ -90,24 +124,40 @@ class _CourseFormPageState extends State<CourseFormPage> {
                   borderRadius: BorderRadius.circular(8),
                   border: Border.all(color: Colors.blue.shade200),
                 ),
-                child: const Text(
-                  '2415051046 • I Kadek Dimas Pradana',
-                  style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    color: Colors.blue,
-                  ),
+                child: Row(
+                  children: [
+                    const Icon(Icons.person, color: Colors.blue),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        '$studentId • $studentName',
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          color: Colors.blue.shade900,
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
               ),
               const SizedBox(height: 20),
 
-              // Input Kode Course
+              // Input Kode Course (Read-Only saat Edit Mode)
               TextFormField(
                 controller: _codeController,
-                decoration: const InputDecoration(
-                  labelText: 'Kode Mata Kuliah *',
-                  hintText: 'Misal: MOB07',
-                  border: OutlineInputBorder(),
-                  prefixIcon: Icon(Icons.code),
+                readOnly: isEditMode, // Wajib read-only saat edit sesuai modul
+                decoration: InputDecoration(
+                  labelText: isEditMode
+                      ? 'Kode Mata Kuliah (Terkunci)'
+                      : 'Kode Mata Kuliah *',
+                  hintText: 'Misal: MOB01',
+                  border: const OutlineInputBorder(),
+                  prefixIcon: const Icon(Icons.code),
+                  filled: isEditMode,
+                  fillColor: isEditMode ? Colors.grey.shade200 : null,
+                  helperText: isEditMode
+                      ? 'Kode tidak dapat diubah karena merupakan relasi favorit'
+                      : null,
                 ),
                 validator: (value) {
                   if (value == null || value.trim().isEmpty) {
@@ -123,7 +173,7 @@ class _CourseFormPageState extends State<CourseFormPage> {
                 controller: _titleController,
                 decoration: const InputDecoration(
                   labelText: 'Judul Mata Kuliah *',
-                  hintText: 'Misal: Integrasi REST API',
+                  hintText: 'Misal: Flutter State Management',
                   border: OutlineInputBorder(),
                   prefixIcon: Icon(Icons.book),
                 ),
@@ -192,7 +242,11 @@ class _CourseFormPageState extends State<CourseFormPage> {
                           child: CircularProgressIndicator(strokeWidth: 2),
                         )
                       : const Icon(Icons.save),
-                  label: Text(_isSaving ? 'Menyimpan...' : 'Simpan Course'),
+                  label: Text(
+                    _isSaving
+                        ? 'Menyimpan...'
+                        : (isEditMode ? 'Simpan Perubahan' : 'Simpan Course'),
+                  ),
                 ),
               ),
             ],

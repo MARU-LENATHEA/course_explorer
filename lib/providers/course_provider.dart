@@ -28,10 +28,15 @@ class CourseProvider extends ChangeNotifier {
     }
   }
 
-  // Menambah course baru via HTTP POST dan refresh list
   Future<void> createCourse(Course course) async {
     await repository.createCourse(course);
-    await loadCourses(); // Merefresh list agar data yang tampil selalu sinkron
+    await loadCourses();
+  }
+
+  // Memperbarui course via PUT dan refresh data
+  Future<void> updateCourse(int id, Course course) async {
+    await repository.updateCourse(id, course);
+    await loadCourses();
   }
 
   bool isFavorite(String code) => favorites.contains(code);

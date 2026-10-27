@@ -31,7 +31,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Course Data Manager',
+      title: 'Tahap 7 - HTTP PUT/PATCH',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(useMaterial3: true, colorSchemeSeed: Colors.blue),
       home: const CourseListPage(),
@@ -60,7 +60,7 @@ class CourseListPage extends StatelessWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Course Data Manager'),
+        title: const Text('Tahap 7: HTTP PUT/PATCH'),
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
         actions: [
           IconButton(
@@ -150,22 +150,45 @@ class CourseListPage extends StatelessWidget {
                           subtitle: Text(
                             'Kode: ${course.code} • ${course.credits} SKS',
                           ),
-                          trailing: Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 8,
-                              vertical: 4,
-                            ),
-                            decoration: BoxDecoration(
-                              color: _getStatusColor(course.status),
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            child: Text(
-                              course.status,
-                              style: const TextStyle(
-                                fontWeight: FontWeight.w600,
-                                fontSize: 12,
+                          trailing: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 8,
+                                  vertical: 4,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: _getStatusColor(course.status),
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                child: Text(
+                                  course.status,
+                                  style: const TextStyle(
+                                    fontWeight: FontWeight.w600,
+                                    fontSize: 12,
+                                  ),
+                                ),
                               ),
-                            ),
+                              const SizedBox(width: 4),
+                              // Tombol Edit
+                              IconButton(
+                                icon: const Icon(
+                                  Icons.edit_outlined,
+                                  color: Colors.blue,
+                                ),
+                                tooltip: 'Edit Course',
+                                onPressed: () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (_) =>
+                                          CourseFormPage(course: course),
+                                    ),
+                                  );
+                                },
+                              ),
+                            ],
                           ),
                         ),
                       );

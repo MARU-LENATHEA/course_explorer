@@ -13,7 +13,7 @@ class CourseApiService {
 
   CourseApiService(this.baseUrl);
 
-  // Method GET (dari Tahap 4)
+  // Method GET (Tahap 4)
   Future<List<Course>> getCourses() async {
     final response = await http.get(Uri.parse('$baseUrl/courses'));
 
@@ -40,5 +40,20 @@ class CourseApiService {
     }
 
     throw Exception('Gagal membuat course (Status: ${response.statusCode})');
+  }
+
+  // Method PUT (Tahap 7)
+  Future<void> updateCourse(int id, Course course) async {
+    final response = await http.put(
+      Uri.parse('$baseUrl/courses/$id'),
+      headers: {'Content-Type': 'application/json'},
+      body: jsonEncode(course.toJson()),
+    );
+
+    if (response.statusCode < 200 || response.statusCode >= 300) {
+      throw Exception(
+        'Gagal memperbarui course (Status: ${response.statusCode})',
+      );
+    }
   }
 }
