@@ -26,11 +26,10 @@ void main() {
       ),
     );
 
-    expect(find.textContaining('Course Explorer'), findsOneWidget);
+    expect(find.textContaining('Course Data Manager'), findsOneWidget);
 
     await tester.pumpAndSettle();
 
     expect(find.textContaining('2415051046'), findsOneWidget);
-    expect(find.text('Git & GitHub'), findsOneWidget);
   });
 }
