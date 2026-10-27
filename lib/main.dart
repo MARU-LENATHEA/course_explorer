@@ -5,7 +5,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'constants/supabase_constants.dart';
 import 'models/course.dart';
 import 'services/course_data_source.dart';
-import 'services/course_api_service.dart';
+import 'services/course_supabase_service.dart'; // Impor service Supabase
 import 'repositories/course_repository.dart';
 import 'providers/course_provider.dart';
 import 'widgets/error_view.dart';
@@ -16,15 +16,13 @@ const String studentName = 'I Kadek Dimas Pradana';
 const String studentId = '2415051046';
 
 Future<void> main() async {
-  // Wajib dipanggil sebelum inisialisasi plugin asinkron di Flutter
   WidgetsFlutterBinding.ensureInitialized();
 
-  // Inisialisasi Supabase Client SDK
+  // Inisialisasi Supabase SDK
   await Supabase.initialize(url: supabaseUrl, publishableKey: supabaseAnonKey);
-  // Sumber data aktif saat ini masih CourseApiService (REST API)
-  // Pada Tahap 12 akan digantikan dengan CourseSupabaseService
-  const String apiBaseUrl = 'https://course-api-pearl.vercel.app';
-  final CourseDataSource dataSource = CourseApiService(apiBaseUrl);
+
+  // Sumber data beralih ke Supabase (Database PostgreSQL)
+  final CourseDataSource dataSource = CourseSupabaseService();
   final repository = CourseRepository(dataSource);
 
   runApp(
@@ -41,7 +39,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Tahap 10 - Supabase Client Setup',
+      title: 'Course Data Manager - Supabase',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(useMaterial3: true, colorSchemeSeed: Colors.blue),
       home: const CourseListPage(),
@@ -118,7 +116,7 @@ class CourseListPage extends StatelessWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Tahap 10: Supabase Client'),
+        title: const Text('Tahap 12: SELECT Supabase'),
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
         actions: [
           IconButton(
@@ -143,7 +141,7 @@ class CourseListPage extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Header Identitas Mahasiswa
+            // Kartu Header Identitas Mahasiswa
             Container(
               width: double.infinity,
               padding: const EdgeInsets.all(12),
@@ -186,7 +184,7 @@ class CourseListPage extends StatelessWidget {
 
                   if (provider.courses.isEmpty) {
                     return const Center(
-                      child: Text('Data course belum tersedia'),
+                      child: Text('Data course belum tersedia di Supabase'),
                     );
                   }
 
