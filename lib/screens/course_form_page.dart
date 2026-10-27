@@ -210,7 +210,7 @@ class _CourseFormPageState extends State<CourseFormPage> {
 
               // Dropdown Status
               DropdownButtonFormField<String>(
-                value: _selectedStatus,
+                initialValue: _selectedStatus,
                 decoration: const InputDecoration(
                   labelText: 'Status Course',
                   border: OutlineInputBorder(),

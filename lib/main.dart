@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
+import 'constants/supabase_constants.dart';
 import 'models/course.dart';
 import 'services/course_data_source.dart';
 import 'services/course_api_service.dart';
@@ -13,10 +15,15 @@ import 'screens/course_form_page.dart';
 const String studentName = 'I Kadek Dimas Pradana';
 const String studentId = '2415051046';
 
-void main() {
-  const String apiBaseUrl = 'https://course-api-pearl.vercel.app';
+Future<void> main() async {
+  // Wajib dipanggil sebelum inisialisasi plugin asinkron di Flutter
+  WidgetsFlutterBinding.ensureInitialized();
 
-  // Perakitan abstraksi data source ke repository
+  // Inisialisasi Supabase Client SDK
+  await Supabase.initialize(url: supabaseUrl, publishableKey: supabaseAnonKey);
+  // Sumber data aktif saat ini masih CourseApiService (REST API)
+  // Pada Tahap 12 akan digantikan dengan CourseSupabaseService
+  const String apiBaseUrl = 'https://course-api-pearl.vercel.app';
   final CourseDataSource dataSource = CourseApiService(apiBaseUrl);
   final repository = CourseRepository(dataSource);
 
@@ -34,7 +41,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Tahap 9 - Repository Pattern',
+      title: 'Tahap 10 - Supabase Client Setup',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(useMaterial3: true, colorSchemeSeed: Colors.blue),
       home: const CourseListPage(),
@@ -111,7 +118,7 @@ class CourseListPage extends StatelessWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Tahap 9: Repository Pattern'),
+        title: const Text('Tahap 10: Supabase Client'),
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
         actions: [
           IconButton(

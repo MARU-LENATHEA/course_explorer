@@ -12,7 +12,7 @@ const String studentId = '2415051046';
 class CourseApiService implements CourseDataSource {
   final String baseUrl;
 
-  CourseApiService(this.baseUrl);
+  CourseApiService([this.baseUrl = 'https://course-api-pearl.vercel.app']);
 
   @override
   Future<List<Course>> getCourses() async {
