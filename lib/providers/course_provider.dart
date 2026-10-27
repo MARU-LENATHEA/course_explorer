@@ -33,9 +33,24 @@ class CourseProvider extends ChangeNotifier {
     await loadCourses();
   }
 
-  // Memperbarui course via PUT dan refresh data
   Future<void> updateCourse(int id, Course course) async {
     await repository.updateCourse(id, course);
+    await loadCourses();
+  }
+
+  // Menghapus course dari API & membersihkan data favorit yatim
+  Future<void> deleteCourse(Course course) async {
+    if (course.id == null) {
+      throw Exception('ID course tidak valid untuk operasi delete');
+    }
+
+    await repository.deleteCourse(course.id!);
+
+    // Hapus dari Set favorites jika tersimpan agar tidak menjadi data yatim
+    if (favorites.contains(course.code)) {
+      favorites.remove(course.code);
+    }
+
     await loadCourses();
   }
 

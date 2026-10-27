@@ -31,7 +31,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Tahap 7 - HTTP PUT/PATCH',
+      title: 'Tahap 8 - HTTP DELETE',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(useMaterial3: true, colorSchemeSeed: Colors.blue),
       home: const CourseListPage(),
@@ -54,13 +54,63 @@ class CourseListPage extends StatelessWidget {
     }
   }
 
+  // Fungsi memunculkan konfirmasi dialog sebelum menghapus data
+  Future<void> _confirmDelete(BuildContext context, Course course) async {
+    final bool? confirm = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Hapus Course'),
+        content: Text(
+          'Apakah Anda yakin ingin menghapus course "${course.title}" (${course.code})?',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text('Batal'),
+          ),
+          FilledButton(
+            style: FilledButton.styleFrom(backgroundColor: Colors.red),
+            onPressed: () => Navigator.pop(ctx, true),
+            child: const Text('Hapus'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirm != true) return;
+
+    if (!context.mounted) return;
+
+    try {
+      await context.read<CourseProvider>().deleteCourse(course);
+
+      if (!context.mounted) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Course "${course.title}" berhasil dihapus!'),
+          backgroundColor: Colors.green,
+        ),
+      );
+    } catch (e) {
+      if (!context.mounted) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Gagal menghapus course: $e'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final provider = context.watch<CourseProvider>();
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Tahap 7: HTTP PUT/PATCH'),
+        title: const Text('Tahap 8: HTTP DELETE Course'),
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
         actions: [
           IconButton(
@@ -85,7 +135,7 @@ class CourseListPage extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Kartu Header Identitas Mahasiswa
+            // Header Identitas Mahasiswa
             Container(
               width: double.infinity,
               padding: const EdgeInsets.all(12),
@@ -170,14 +220,13 @@ class CourseListPage extends StatelessWidget {
                                   ),
                                 ),
                               ),
-                              const SizedBox(width: 4),
                               // Tombol Edit
                               IconButton(
                                 icon: const Icon(
                                   Icons.edit_outlined,
                                   color: Colors.blue,
                                 ),
-                                tooltip: 'Edit Course',
+                                tooltip: 'Edit',
                                 onPressed: () {
                                   Navigator.push(
                                     context,
@@ -187,6 +236,16 @@ class CourseListPage extends StatelessWidget {
                                     ),
                                   );
                                 },
+                              ),
+                              // Tombol Delete
+                              IconButton(
+                                icon: const Icon(
+                                  Icons.delete_outline,
+                                  color: Colors.red,
+                                ),
+                                tooltip: 'Hapus',
+                                onPressed: () =>
+                                    _confirmDelete(context, course),
                               ),
                             ],
                           ),
