@@ -5,8 +5,10 @@ import 'models/course.dart';
 import 'services/course_api_service.dart';
 import 'repositories/course_repository.dart';
 import 'providers/course_provider.dart';
+import 'widgets/error_view.dart';
 
 void main() {
+  // Ganti sementara URL di bawah menjadi 'https://course-api-pearl.vercel.app/salah' jika ingin memunculkan ErrorView
   const String apiBaseUrl = 'https://course-api-pearl.vercel.app';
   final apiService = CourseApiService(apiBaseUrl);
   final repository = CourseRepository(apiService);
@@ -25,16 +27,16 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Tahap 4 - Service Layer',
+      title: 'Tahap 5 - Async State',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(useMaterial3: true, colorSchemeSeed: Colors.blue),
-      home: const ServiceLayerTestPage(),
+      home: const AsyncStatePage(),
     );
   }
 }
 
-class ServiceLayerTestPage extends StatelessWidget {
-  const ServiceLayerTestPage({super.key});
+class AsyncStatePage extends StatelessWidget {
+  const AsyncStatePage({super.key});
 
   Color _getStatusColor(String status) {
     switch (status.toLowerCase()) {
@@ -54,12 +56,11 @@ class ServiceLayerTestPage extends StatelessWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Tahap 4: HTTP di Service Layer'),
+        title: const Text('Tahap 5: Loading, Empty & Error'),
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
         actions: [
           IconButton(
             icon: const Icon(Icons.refresh),
-            tooltip: 'Refresh',
             onPressed: () => context.read<CourseProvider>().loadCourses(),
           ),
         ],
@@ -78,13 +79,13 @@ class ServiceLayerTestPage extends StatelessWidget {
                 borderRadius: BorderRadius.circular(8),
                 border: Border.all(color: Colors.blue.shade200),
               ),
-              child: Row(
+              child: const Row(
                 children: [
-                  const Icon(Icons.person, color: Colors.blue),
-                  const SizedBox(width: 8),
-                  const Expanded(
+                  Icon(Icons.person, color: Colors.blue),
+                  SizedBox(width: 8),
+                  Expanded(
                     child: Text(
-                      '$studentId • $studentName',
+                      '2415051046 • I Kadek Dimas Pradana',
                       style: TextStyle(
                         fontWeight: FontWeight.bold,
                         color: Colors.blue,
@@ -95,33 +96,34 @@ class ServiceLayerTestPage extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 16),
-            Text(
-              'Arsitektur: UI -> Provider -> Repository -> CourseApiService',
-              style: Theme.of(context).textTheme.titleSmall
-                  ?.copyWith(fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 8),
             Expanded(
               child: Builder(
                 builder: (_) {
+                  // 1. Loading State
                   if (provider.isLoading) {
                     return const Center(child: CircularProgressIndicator());
                   }
 
+                  // 2. Error State (Memanggil ErrorView)
                   if (provider.error != null) {
-                    return Center(
+                    return ErrorView(
+                      message: provider.error!,
+                      onRetry: () =>
+                          context.read<CourseProvider>().loadCourses(),
+                    );
+                  }
+
+                  // 3. Empty State
+                  if (provider.courses.isEmpty) {
+                    return const Center(
                       child: Text(
-                        'Error: ${provider.error}',
-                        textAlign: TextAlign.center,
-                        style: const TextStyle(color: Colors.red),
+                        'Data course belum tersedia',
+                        style: TextStyle(fontSize: 15, color: Colors.grey),
                       ),
                     );
                   }
 
-                  if (provider.courses.isEmpty) {
-                    return const Center(child: Text('Data course kosong'));
-                  }
-
+                  // 4. Success State
                   return ListView.builder(
                     itemCount: provider.courses.length,
                     itemBuilder: (context, index) {
