@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import 'models/course.dart';
+import 'services/course_data_source.dart';
 import 'services/course_api_service.dart';
 import 'repositories/course_repository.dart';
 import 'providers/course_provider.dart';
@@ -14,8 +15,10 @@ const String studentId = '2415051046';
 
 void main() {
   const String apiBaseUrl = 'https://course-api-pearl.vercel.app';
-  final apiService = CourseApiService(apiBaseUrl);
-  final repository = CourseRepository(apiService);
+
+  // Perakitan abstraksi data source ke repository
+  final CourseDataSource dataSource = CourseApiService(apiBaseUrl);
+  final repository = CourseRepository(dataSource);
 
   runApp(
     ChangeNotifierProvider(
@@ -31,7 +34,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Tahap 8 - HTTP DELETE',
+      title: 'Tahap 9 - Repository Pattern',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(useMaterial3: true, colorSchemeSeed: Colors.blue),
       home: const CourseListPage(),
@@ -54,7 +57,6 @@ class CourseListPage extends StatelessWidget {
     }
   }
 
-  // Fungsi memunculkan konfirmasi dialog sebelum menghapus data
   Future<void> _confirmDelete(BuildContext context, Course course) async {
     final bool? confirm = await showDialog<bool>(
       context: context,
@@ -78,7 +80,6 @@ class CourseListPage extends StatelessWidget {
     );
 
     if (confirm != true) return;
-
     if (!context.mounted) return;
 
     try {
@@ -110,7 +111,7 @@ class CourseListPage extends StatelessWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Tahap 8: HTTP DELETE Course'),
+        title: const Text('Tahap 9: Repository Pattern'),
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
         actions: [
           IconButton(
@@ -220,7 +221,6 @@ class CourseListPage extends StatelessWidget {
                                   ),
                                 ),
                               ),
-                              // Tombol Edit
                               IconButton(
                                 icon: const Icon(
                                   Icons.edit_outlined,
@@ -237,7 +237,6 @@ class CourseListPage extends StatelessWidget {
                                   );
                                 },
                               ),
-                              // Tombol Delete
                               IconButton(
                                 icon: const Icon(
                                   Icons.delete_outline,

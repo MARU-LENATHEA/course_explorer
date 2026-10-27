@@ -3,17 +3,18 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 
 import '../models/course.dart';
+import 'course_data_source.dart';
 
 // Identitas Mahasiswa Praktikan
 const String studentName = 'I Kadek Dimas Pradana';
 const String studentId = '2415051046';
 
-class CourseApiService {
+class CourseApiService implements CourseDataSource {
   final String baseUrl;
 
   CourseApiService(this.baseUrl);
 
-  // Method GET (Tahap 4)
+  @override
   Future<List<Course>> getCourses() async {
     final response = await http.get(Uri.parse('$baseUrl/courses'));
 
@@ -27,7 +28,7 @@ class CourseApiService {
     return data.map((e) => Course.fromJson(e as Map<String, dynamic>)).toList();
   }
 
-  // Method POST (Tahap 6)
+  @override
   Future<Course> createCourse(Course course) async {
     final response = await http.post(
       Uri.parse('$baseUrl/courses'),
@@ -42,7 +43,7 @@ class CourseApiService {
     throw Exception('Gagal membuat course (Status: ${response.statusCode})');
   }
 
-  // Method PUT (Tahap 7)
+  @override
   Future<void> updateCourse(int id, Course course) async {
     final response = await http.put(
       Uri.parse('$baseUrl/courses/$id'),
@@ -57,7 +58,7 @@ class CourseApiService {
     }
   }
 
-  // Method DELETE (Tahap 8)
+  @override
   Future<void> deleteCourse(int id) async {
     final response = await http.delete(Uri.parse('$baseUrl/courses/$id'));
 
