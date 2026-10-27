@@ -2,7 +2,7 @@ import 'package:flutter_test/flutter_test.dart';
 // Sesuaikan import path project Anda jika berbeda
 import 'package:course_explorer/providers/course_provider.dart';
 import 'package:course_explorer/repositories/course_repository.dart';
-import 'package:course_explorer/services/course_service.dart';
+import 'package:course_explorer/services/course_api_service.dart';
 
 // Identitas Mahasiswa Praktikan
 const String studentName = 'I Kadek Dimas Pradana';
@@ -14,7 +14,7 @@ void main() {
     late CourseRepository courseRepository;
 
     setUp(() {
-      courseRepository = CourseRepository(CourseService());
+      courseRepository = CourseRepository(CourseApiService());
       courseProvider = CourseProvider(courseRepository);
     });
 

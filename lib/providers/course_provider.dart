@@ -3,10 +3,6 @@ import 'package:flutter/foundation.dart';
 import '../models/course.dart';
 import '../repositories/course_repository.dart';
 
-// Identitas Mahasiswa Praktikan
-const String studentName = 'I Kadek Dimas Pradana';
-const String studentId = '2415051046';
-
 class CourseProvider extends ChangeNotifier {
   final CourseRepository repository;
 
@@ -17,7 +13,6 @@ class CourseProvider extends ChangeNotifier {
   bool isLoading = false;
   String? error;
 
-  // Method Async State: Loading -> Success / Error
   Future<void> loadCourses() async {
     isLoading = true;
     error = null;
@@ -33,13 +28,13 @@ class CourseProvider extends ChangeNotifier {
     }
   }
 
-  bool isFavorite(String id) => favorites.contains(id);
+  bool isFavorite(String code) => favorites.contains(code);
 
-  void toggleFavorite(String id) {
-    if (favorites.contains(id)) {
-      favorites.remove(id);
+  void toggleFavorite(String code) {
+    if (favorites.contains(code)) {
+      favorites.remove(code);
     } else {
-      favorites.add(id);
+      favorites.add(code);
     }
     notifyListeners();
   }

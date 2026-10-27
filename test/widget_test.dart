@@ -4,15 +4,15 @@ import 'package:provider/provider.dart';
 import 'package:course_explorer/main.dart';
 import 'package:course_explorer/providers/course_provider.dart';
 import 'package:course_explorer/repositories/course_repository.dart';
-import 'package:course_explorer/services/course_service.dart';
+import 'package:course_explorer/services/course_api_service.dart';
 
 void main() {
   testWidgets('Course Explorer smoke test', (WidgetTester tester) async {
     await tester.pumpWidget(
       MultiProvider(
         providers: [
-          Provider<CourseService>(create: (_) => CourseService()),
-          ProxyProvider<CourseService, CourseRepository>(
+          Provider<CourseApiService>(create: (_) => CourseApiService()),
+          ProxyProvider<CourseApiService, CourseRepository>(
             update: (_, service, _) => CourseRepository(service),
           ),
           ChangeNotifierProxyProvider<CourseRepository, CourseProvider>(

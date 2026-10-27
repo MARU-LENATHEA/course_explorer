@@ -1,12 +1,22 @@
-import 'dart:convert';
-
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
+import 'package:provider/provider.dart';
 
 import 'models/course.dart';
+import 'services/course_api_service.dart';
+import 'repositories/course_repository.dart';
+import 'providers/course_provider.dart';
 
 void main() {
-  runApp(const MyApp());
+  const String apiBaseUrl = 'https://course-api-pearl.vercel.app';
+  final apiService = CourseApiService(apiBaseUrl);
+  final repository = CourseRepository(apiService);
+
+  runApp(
+    ChangeNotifierProvider(
+      create: (_) => CourseProvider(repository)..loadCourses(),
+      child: const MyApp(),
+    ),
+  );
 }
 
 class MyApp extends StatelessWidget {
@@ -15,64 +25,16 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Tahap 3 - Model Dart',
+      title: 'Tahap 4 - Service Layer',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(useMaterial3: true, colorSchemeSeed: Colors.blue),
-      home: const CourseModelTestPage(),
+      home: const ServiceLayerTestPage(),
     );
   }
 }
 
-class CourseModelTestPage extends StatefulWidget {
-  const CourseModelTestPage({super.key});
-
-  @override
-  State<CourseModelTestPage> createState() => _CourseModelTestPageState();
-}
-
-class _CourseModelTestPageState extends State<CourseModelTestPage> {
-  static const String apiUrl = 'https://course-api-pearl.vercel.app/courses';
-
-  List<Course> _courses = [];
-  bool _isLoading = true;
-  String? _errorMessage;
-
-  @override
-  void initState() {
-    super.initState();
-    _fetchCourses();
-  }
-
-  Future<void> _fetchCourses() async {
-    setState(() {
-      _isLoading = true;
-      _errorMessage = null;
-    });
-
-    try {
-      final response = await http.get(Uri.parse(apiUrl));
-      if (response.statusCode == 200) {
-        final List<dynamic> data = jsonDecode(response.body) as List<dynamic>;
-
-        // Mapping JSON List menjadi List<Course>
-        final List<Course> mappedCourses = data
-            .map((item) => Course.fromJson(item as Map<String, dynamic>))
-            .toList();
-
-        setState(() {
-          _courses = mappedCourses;
-          _isLoading = false;
-        });
-      } else {
-        throw Exception('HTTP ${response.statusCode}: Gagal mengambil data');
-      }
-    } catch (e) {
-      setState(() {
-        _errorMessage = e.toString();
-        _isLoading = false;
-      });
-    }
-  }
+class ServiceLayerTestPage extends StatelessWidget {
+  const ServiceLayerTestPage({super.key});
 
   Color _getStatusColor(String status) {
     switch (status.toLowerCase()) {
@@ -88,15 +50,17 @@ class _CourseModelTestPageState extends State<CourseModelTestPage> {
 
   @override
   Widget build(BuildContext context) {
+    final provider = context.watch<CourseProvider>();
+
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Tahap 3: Model Course & JSON'),
+        title: const Text('Tahap 4: HTTP di Service Layer'),
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
         actions: [
           IconButton(
             icon: const Icon(Icons.refresh),
             tooltip: 'Refresh',
-            onPressed: _fetchCourses,
+            onPressed: () => context.read<CourseProvider>().loadCourses(),
           ),
         ],
       ),
@@ -118,12 +82,12 @@ class _CourseModelTestPageState extends State<CourseModelTestPage> {
                 children: [
                   const Icon(Icons.person, color: Colors.blue),
                   const SizedBox(width: 8),
-                  Expanded(
+                  const Expanded(
                     child: Text(
                       '$studentId • $studentName',
                       style: TextStyle(
                         fontWeight: FontWeight.bold,
-                        color: Colors.blue.shade900,
+                        color: Colors.blue,
                       ),
                     ),
                   ),
@@ -132,63 +96,73 @@ class _CourseModelTestPageState extends State<CourseModelTestPage> {
             ),
             const SizedBox(height: 16),
             Text(
-              'Daftar Course (Terkonversi ke List<Course>):',
+              'Arsitektur: UI -> Provider -> Repository -> CourseApiService',
               style: Theme.of(context).textTheme.titleSmall
                   ?.copyWith(fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 8),
             Expanded(
-              child: _isLoading
-                  ? const Center(child: CircularProgressIndicator())
-                  : _errorMessage != null
-                  ? Center(
+              child: Builder(
+                builder: (_) {
+                  if (provider.isLoading) {
+                    return const Center(child: CircularProgressIndicator());
+                  }
+
+                  if (provider.error != null) {
+                    return Center(
                       child: Text(
-                        'Error: $_errorMessage',
+                        'Error: ${provider.error}',
                         textAlign: TextAlign.center,
                         style: const TextStyle(color: Colors.red),
                       ),
-                    )
-                  : ListView.builder(
-                      itemCount: _courses.length,
-                      itemBuilder: (context, index) {
-                        final Course course = _courses[index];
-                        return Card(
-                          margin: const EdgeInsets.symmetric(vertical: 4),
-                          child: ListTile(
-                            leading: CircleAvatar(
-                              backgroundColor: Colors.blue.shade100,
-                              child: Text('${course.credits}'),
+                    );
+                  }
+
+                  if (provider.courses.isEmpty) {
+                    return const Center(child: Text('Data course kosong'));
+                  }
+
+                  return ListView.builder(
+                    itemCount: provider.courses.length,
+                    itemBuilder: (context, index) {
+                      final Course course = provider.courses[index];
+                      return Card(
+                        margin: const EdgeInsets.symmetric(vertical: 4),
+                        child: ListTile(
+                          leading: CircleAvatar(
+                            backgroundColor: Colors.blue.shade100,
+                            child: Text('${course.credits}'),
+                          ),
+                          title: Text(
+                            course.title,
+                            style: const TextStyle(fontWeight: FontWeight.bold),
+                          ),
+                          subtitle: Text(
+                            'Kode: ${course.code} • ${course.credits} SKS',
+                          ),
+                          trailing: Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 8,
+                              vertical: 4,
                             ),
-                            title: Text(
-                              course.title,
+                            decoration: BoxDecoration(
+                              color: _getStatusColor(course.status),
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: Text(
+                              course.status,
                               style: const TextStyle(
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                            subtitle: Text(
-                              'Kode: ${course.code} • ${course.credits} SKS',
-                            ),
-                            trailing: Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 8,
-                                vertical: 4,
-                              ),
-                              decoration: BoxDecoration(
-                                color: _getStatusColor(course.status),
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                              child: Text(
-                                course.status,
-                                style: const TextStyle(
-                                  fontWeight: FontWeight.w600,
-                                  fontSize: 12,
-                                ),
+                                fontWeight: FontWeight.w600,
+                                fontSize: 12,
                               ),
                             ),
                           ),
-                        );
-                      },
-                    ),
+                        ),
+                      );
+                    },
+                  );
+                },
+              ),
             ),
           ],
         ),
