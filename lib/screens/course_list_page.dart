@@ -5,17 +5,14 @@ import '../models/course.dart';
 import '../providers/course_provider.dart';
 import '../widgets/course_card.dart';
 import '../widgets/error_view.dart';
+// --- TAMBAHAN PRAKTIK 4 ---
+import '../widgets/role_guard.dart';
+// --------------------------
 import 'course_detail_page.dart';
 import 'course_form_page.dart';
-
-// --- IMPORT AUTH & PROFILE SERVICES ---
 import '../services/auth_service.dart';
 import '../services/profile_service.dart';
-import '../pages/login_page.dart';
 
-// --------------------------------------
-
-// UBAHAN PRAKTIK 3: Mengubah menjadi StatefulWidget untuk load profil
 class CourseListPage extends StatefulWidget {
   const CourseListPage({super.key});
 
@@ -33,7 +30,6 @@ class _CourseListPageState extends State<CourseListPage> {
     _loadProfile();
   }
 
-  // Fungsi untuk menarik data profil dari Supabase
   Future<void> _loadProfile() async {
     try {
       final profile = await ProfileService().getMyProfile();
@@ -96,9 +92,8 @@ class _CourseListPageState extends State<CourseListPage> {
   @override
   Widget build(BuildContext context) {
     final provider = context.watch<CourseProvider>();
-
-    // Cek apakah user yang sedang login memiliki role 'owner'
-    final bool isOwner = _profile?.isOwner ?? false;
+    // Cek role user saat ini (default 'seeker' jika belum loading)
+    final String currentRole = _profile?.role ?? 'seeker';
 
     return Scaffold(
       appBar: AppBar(
@@ -110,36 +105,37 @@ class _CourseListPageState extends State<CourseListPage> {
             tooltip: 'Refresh Data',
             onPressed: () {
               context.read<CourseProvider>().loadCourses();
-              _loadProfile(); // Refresh profil juga
+              _loadProfile();
             },
           ),
           IconButton(
             tooltip: 'Logout',
             icon: const Icon(Icons.logout),
-            onPressed: () async {
-              await AuthService.instance.logout();
-            },
+            onPressed: () async => await AuthService.instance.logout(),
           ),
         ],
       ),
 
-      // Tampilkan FAB Tambah Course HANYA jika dia Owner
-      floatingActionButton: isOwner
-          ? FloatingActionButton.extended(
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (_) => const CourseFormPage()),
-                );
-              },
-              icon: const Icon(Icons.add),
-              label: const Text('Tambah Course'),
-            )
-          : null,
+      // PRAKTIK 4: Gunakan RoleGuard untuk tombol Tambah.
+      // Hanya tampil untuk role 'owner' atau 'admin'.
+      floatingActionButton: RoleGuard(
+        role: currentRole,
+        allowed: const ['owner', 'admin'],
+        child: FloatingActionButton.extended(
+          onPressed: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => const CourseFormPage()),
+            );
+          },
+          icon: const Icon(Icons.add),
+          label: const Text('Tambah Course'),
+        ),
+      ),
 
       body: Column(
         children: [
-          // Header Profil Dinamis
+          // Header Profil
           if (!_isLoadingProfile && _profile != null)
             Padding(
               padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
@@ -217,9 +213,9 @@ class _CourseListPageState extends State<CourseListPage> {
                           ),
                         );
                       },
-                      // Kirim fungsi edit/delete HANYA jika dia Owner
-                      // Jika seeker, berikan null agar tombol di-disable/disembunyikan oleh Card
-                      onEdit: isOwner
+                      // PRAKTIK 4: Logika Edit/Hapus disembunyikan untuk seeker.
+                      // Di Praktik 5 nanti, ini akan ditimpa dengan RLS (cek owner_id).
+                      onEdit: (currentRole == 'owner' || currentRole == 'admin')
                           ? () {
                               Navigator.push(
                                 context,
@@ -230,7 +226,8 @@ class _CourseListPageState extends State<CourseListPage> {
                               );
                             }
                           : null,
-                      onDelete: isOwner
+                      onDelete:
+                          (currentRole == 'owner' || currentRole == 'admin')
                           ? () => _confirmDelete(context, course)
                           : null,
                     );

@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
 
 import '../models/course.dart';
-import '../providers/course_provider.dart';
+import '../services/profile_service.dart';
+import '../widgets/role_guard.dart';
 import 'course_form_page.dart';
 
 class CourseDetailPage extends StatelessWidget {
@@ -12,38 +12,42 @@ class CourseDetailPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Ambil data versi terbaru dari provider berdasarkan kode
-    final currentCourse = context.select<CourseProvider, Course>(
-      (p) => p.courses.firstWhere(
-        (c) => c.code == course.code,
-        orElse: () => course,
-      ),
-    );
-    final isFav = context.watch<CourseProvider>().isFavorite(
-      currentCourse.code,
-    );
-
     return Scaffold(
       appBar: AppBar(
-        title: Text(currentCourse.title),
+        title: Text(course.title),
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
         actions: [
+          // Tombol Favorit (opsional, menyesuaikan screenshot)
           IconButton(
-            icon: Icon(
-              isFav ? Icons.favorite : Icons.favorite_border,
-              color: isFav ? Colors.red : null,
-            ),
+            icon: const Icon(Icons.favorite_border),
             onPressed: () {
-              context.read<CourseProvider>().toggleFavorite(currentCourse.code);
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text('Fitur favorit belum diimplementasikan'),
+                ),
+              );
             },
           ),
-          IconButton(
-            icon: const Icon(Icons.edit),
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (_) => CourseFormPage(course: currentCourse),
+          // PRAKTIK 4: Tombol Edit yang dilindungi RoleGuard
+          FutureBuilder<UserProfile?>(
+            future: ProfileService().getMyProfile(),
+            builder: (context, snapshot) {
+              // Jika data profil belum selesai dimuat, jadikan 'seeker' sebagai default (paling aman)
+              final role = snapshot.data?.role ?? 'seeker';
+
+              return RoleGuard(
+                role: role,
+                allowed: const ['owner', 'admin'],
+                child: IconButton(
+                  icon: const Icon(Icons.edit),
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => CourseFormPage(course: course),
+                      ),
+                    );
+                  },
                 ),
               );
             },
@@ -52,57 +56,60 @@ class CourseDetailPage extends StatelessWidget {
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16.0),
-        child: Column(
-          children: [
-            Card(
-              elevation: 2,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    ListTile(
-                      contentPadding: EdgeInsets.zero,
-                      title: Text(
-                        currentCourse.title,
-                        style: const TextStyle(
-                          fontSize: 20,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      subtitle: Text('ID Database: ${currentCourse.id ?? "-"}'),
-                    ),
-                    const Divider(),
-                    _buildRow('Kode Mata Kuliah', currentCourse.code),
-                    _buildRow('Bobot Kredit', '${currentCourse.credits} SKS'),
-                    _buildRow('Status', currentCourse.status.toUpperCase()),
-                    _buildRow('Tersimpan di Favorit', isFav ? 'Ya' : 'Tidak'),
-                  ],
+        child: Card(
+          elevation: 2,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: Padding(
+            padding: const EdgeInsets.all(20.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  course.title,
+                  style: const TextStyle(
+                    fontSize: 22,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
-              ),
+                const SizedBox(height: 6),
+                Text(
+                  'ID Database: ${course.id ?? '-'}',
+                  style: TextStyle(color: Colors.grey.shade600, fontSize: 14),
+                ),
+                const Padding(
+                  padding: EdgeInsets.symmetric(vertical: 20.0),
+                  child: Divider(),
+                ),
+                _buildDetailRow('Kode Mata Kuliah', course.code),
+                const SizedBox(height: 16),
+                // Sesuaikan course.credits jika tipenya int (gunakan .toString())
+                _buildDetailRow('Bobot Kredit', '${course.credits} SKS'),
+                const SizedBox(height: 16),
+                // Sesuaikan jika course model kamu tidak punya properti status
+                _buildDetailRow('Status', 'ACTIVE'),
+                const SizedBox(height: 16),
+                _buildDetailRow('Tersimpan di Favorit', 'Tidak'),
+              ],
             ),
-          ],
+          ),
         ),
       ),
     );
   }
 
-  Widget _buildRow(String label, String value) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8.0),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Text(label, style: const TextStyle(color: Colors.grey, fontSize: 14)),
-          Text(
-            value,
-            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
-          ),
-        ],
-      ),
+  // Widget pembantu agar baris informasi rapi
+  Widget _buildDetailRow(String label, String value) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Text(label, style: const TextStyle(fontSize: 15, color: Colors.grey)),
+        Text(
+          value,
+          style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
+        ),
+      ],
     );
   }
 }
