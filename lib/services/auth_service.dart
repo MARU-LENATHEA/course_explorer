@@ -9,11 +9,21 @@ class AuthService {
   Session? get currentSession => _client.auth.currentSession;
   bool get isLoggedIn => currentSession != null;
 
+  // UBAHAN PRAKTIK 3: Tambah parameter name dan role
   Future<AuthResponse> register({
     required String email,
     required String password,
+    String name = '',
+    String role = 'seeker',
   }) {
-    return _client.auth.signUp(email: email, password: password);
+    return _client.auth.signUp(
+      email: email,
+      password: password,
+      data: {
+        'name': name,
+        'role': role,
+      }, // Data ini akan ditangkap oleh trigger SQL
+    );
   }
 
   Future<AuthResponse> login({
