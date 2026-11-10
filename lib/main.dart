@@ -7,11 +7,14 @@ import 'services/course_data_source.dart';
 import 'services/course_supabase_service.dart';
 import 'repositories/course_repository.dart';
 import 'providers/course_provider.dart';
+import 'screens/responsive_shell.dart';
 
-// --- TAMBAHAN WORKSHEET 9: PRAKTIK 1 ---
+// --- TAMBAHAN PRAKTIK 2 ---
+import 'services/auth_service.dart';
 import 'pages/login_page.dart';
+import 'app_keys.dart';
 
-// ---------------------------------------
+// --------------------------
 
 // Identitas Mahasiswa Praktikan
 const String studentName = 'I Kadek Dimas Pradana';
@@ -20,10 +23,18 @@ const String studentId = '2415051046';
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // Inisialisasi Supabase SDK (menggunakan variabel dari file constants bawaanmu)
   await Supabase.initialize(url: supabaseUrl, publishableKey: supabaseAnonKey);
 
-  // Sumber Data Aktif: Database PostgreSQL Supabase
+  // PRAKTIK 2: Logika Session (Otomatis ke login kalau logout)
+  Supabase.instance.client.auth.onAuthStateChange.listen((data) {
+    if (data.event == AuthChangeEvent.signedOut) {
+      navigatorKey.currentState?.pushAndRemoveUntil(
+        MaterialPageRoute(builder: (_) => const LoginPage()),
+        (route) => false,
+      );
+    }
+  });
+
   final CourseDataSource dataSource = CourseSupabaseService();
   final repository = CourseRepository(dataSource);
 
@@ -45,10 +56,14 @@ class MyApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       theme: ThemeData(useMaterial3: true, colorSchemeSeed: Colors.blue),
 
-      // --- UBAHAN WORKSHEET 9: PRAKTIK 1 ---
-      // Arahkan halaman pertama kali dibuka ke LoginPage
-      home: const LoginPage(),
-      // ---------------------------------------
+      // PRAKTIK 2: Tambahkan key global
+      navigatorKey: navigatorKey,
+      scaffoldMessengerKey: messengerKey,
+
+      // PRAKTIK 2: Cek apakah user sudah login atau belum
+      home: AuthService.instance.isLoggedIn
+          ? const ResponsiveShell()
+          : const LoginPage(),
     );
   }
 }

@@ -8,6 +8,12 @@ import '../widgets/error_view.dart';
 import 'course_detail_page.dart';
 import 'course_form_page.dart';
 
+// --- TAMBAHAN PRAKTIK 2 ---
+import '../services/auth_service.dart';
+import '../pages/login_page.dart';
+
+// --------------------------
+
 class CourseListPage extends StatelessWidget {
   const CourseListPage({super.key});
 
@@ -73,6 +79,17 @@ class CourseListPage extends StatelessWidget {
             tooltip: 'Refresh Data',
             onPressed: () => context.read<CourseProvider>().loadCourses(),
           ),
+          // --- TAMBAHAN PRAKTIK 2: TOMBOL LOGOUT ---
+          IconButton(
+            tooltip: 'Logout',
+            icon: const Icon(Icons.logout),
+            onPressed: () async {
+              await AuthService.instance.logout();
+              // Catatan: Navigasi pindah ke halaman Login sudah otomatis
+              // ditangani oleh listener onAuthStateChange di main.dart
+            },
+          ),
+          // -----------------------------------------
         ],
       ),
       floatingActionButton: FloatingActionButton.extended(
