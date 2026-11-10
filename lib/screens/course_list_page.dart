@@ -5,9 +5,7 @@ import '../models/course.dart';
 import '../providers/course_provider.dart';
 import '../widgets/course_card.dart';
 import '../widgets/error_view.dart';
-// --- TAMBAHAN PRAKTIK 4 ---
 import '../widgets/role_guard.dart';
-// --------------------------
 import 'course_detail_page.dart';
 import 'course_form_page.dart';
 import '../services/auth_service.dart';
@@ -82,7 +80,7 @@ class _CourseListPageState extends State<CourseListPage> {
       if (!context.mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Gagal menghapus course: $e'),
+          content: Text(e.toString().replaceAll('Exception: ', '')),
           backgroundColor: Colors.red,
         ),
       );
@@ -92,8 +90,8 @@ class _CourseListPageState extends State<CourseListPage> {
   @override
   Widget build(BuildContext context) {
     final provider = context.watch<CourseProvider>();
-    // Cek role user saat ini (default 'seeker' jika belum loading)
     final String currentRole = _profile?.role ?? 'seeker';
+    final String? currentUserId = AuthService.instance.currentUser?.id;
 
     return Scaffold(
       appBar: AppBar(
@@ -115,9 +113,6 @@ class _CourseListPageState extends State<CourseListPage> {
           ),
         ],
       ),
-
-      // PRAKTIK 4: Gunakan RoleGuard untuk tombol Tambah.
-      // Hanya tampil untuk role 'owner' atau 'admin'.
       floatingActionButton: RoleGuard(
         role: currentRole,
         allowed: const ['owner', 'admin'],
@@ -132,10 +127,8 @@ class _CourseListPageState extends State<CourseListPage> {
           label: const Text('Tambah Course'),
         ),
       ),
-
       body: Column(
         children: [
-          // Header Profil
           if (!_isLoadingProfile && _profile != null)
             Padding(
               padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
@@ -179,7 +172,6 @@ class _CourseListPageState extends State<CourseListPage> {
                 ),
               ),
             ),
-
           Expanded(
             child: Builder(
               builder: (_) {
@@ -203,6 +195,11 @@ class _CourseListPageState extends State<CourseListPage> {
                   itemCount: provider.courses.length,
                   itemBuilder: (context, index) {
                     final Course course = provider.courses[index];
+                    final bool isMine = course.ownerId == currentUserId;
+                    final bool canModify =
+                        (currentRole == 'owner' || currentRole == 'admin') &&
+                            isMine;
+
                     return CourseCard(
                       course: course,
                       onTap: () {
@@ -213,9 +210,7 @@ class _CourseListPageState extends State<CourseListPage> {
                           ),
                         );
                       },
-                      // PRAKTIK 4: Logika Edit/Hapus disembunyikan untuk seeker.
-                      // Di Praktik 5 nanti, ini akan ditimpa dengan RLS (cek owner_id).
-                      onEdit: (currentRole == 'owner' || currentRole == 'admin')
+                      onEdit: canModify
                           ? () {
                               Navigator.push(
                                 context,
@@ -226,8 +221,7 @@ class _CourseListPageState extends State<CourseListPage> {
                               );
                             }
                           : null,
-                      onDelete:
-                          (currentRole == 'owner' || currentRole == 'admin')
+                      onDelete: canModify
                           ? () => _confirmDelete(context, course)
                           : null,
                     );

@@ -8,6 +8,8 @@ class Course {
   final String title;
   final int credits;
   final String status;
+  // TAMBAHAN PRAKTIK 5: Menyimpan ID pemilik data
+  final String? ownerId;
 
   const Course({
     this.id,
@@ -15,9 +17,9 @@ class Course {
     required this.title,
     required this.credits,
     this.status = 'planned',
+    this.ownerId,
   });
 
-  // Factory constructor untuk mapping dari Map JSON ke Objek Dart
   factory Course.fromJson(Map<String, dynamic> json) {
     return Course(
       id: json['id'] as int?,
@@ -25,15 +27,16 @@ class Course {
       title: json['title'] as String,
       credits: json['credits'] as int,
       status: (json['status'] as String?) ?? 'planned',
+      ownerId: json['owner_id'] as String?, // Ambil dari database
     );
   }
 
-  // Method untuk serialisasi objek Dart ke Map JSON
   Map<String, dynamic> toJson() => {
     if (id != null) 'id': id,
     'code': code,
     'title': title,
     'credits': credits,
     'status': status,
+    if (ownerId != null) 'owner_id': ownerId, // Kirim ke database
   };
 }

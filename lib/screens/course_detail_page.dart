@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../models/course.dart';
+import '../services/auth_service.dart';
 import '../services/profile_service.dart';
 import '../widgets/role_guard.dart';
 import 'course_form_page.dart';
@@ -12,12 +13,16 @@ class CourseDetailPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Ambil UID user yang sedang login saat ini
+    final String? currentUserId = AuthService.instance.currentUser?.id;
+    // Cek kepemilikan
+    final bool isMine = course.ownerId == currentUserId;
+
     return Scaffold(
       appBar: AppBar(
         title: Text(course.title),
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
         actions: [
-          // Tombol Favorit (opsional, menyesuaikan screenshot)
           IconButton(
             icon: const Icon(Icons.favorite_border),
             onPressed: () {
@@ -28,15 +33,18 @@ class CourseDetailPage extends StatelessWidget {
               );
             },
           ),
-          // PRAKTIK 4: Tombol Edit yang dilindungi RoleGuard
+          // Ikon Edit dilindungi RoleGuard DAN logika isMine
           FutureBuilder<UserProfile?>(
             future: ProfileService().getMyProfile(),
             builder: (context, snapshot) {
-              // Jika data profil belum selesai dimuat, jadikan 'seeker' sebagai default (paling aman)
               final role = snapshot.data?.role ?? 'seeker';
 
+              // Jika role-nya owner/admin tapi course ini bukan miliknya,
+              // paksa anggap sebagai seeker agar tombolnya hilang
+              final effectiveRole = (isMine) ? role : 'seeker';
+
               return RoleGuard(
-                role: role,
+                role: effectiveRole,
                 allowed: const ['owner', 'admin'],
                 child: IconButton(
                   icon: const Icon(Icons.edit),
@@ -84,11 +92,9 @@ class CourseDetailPage extends StatelessWidget {
                 ),
                 _buildDetailRow('Kode Mata Kuliah', course.code),
                 const SizedBox(height: 16),
-                // Sesuaikan course.credits jika tipenya int (gunakan .toString())
                 _buildDetailRow('Bobot Kredit', '${course.credits} SKS'),
                 const SizedBox(height: 16),
-                // Sesuaikan jika course model kamu tidak punya properti status
-                _buildDetailRow('Status', 'ACTIVE'),
+                _buildDetailRow('Status', course.status.toUpperCase()),
                 const SizedBox(height: 16),
                 _buildDetailRow('Tersimpan di Favorit', 'Tidak'),
               ],
@@ -99,7 +105,6 @@ class CourseDetailPage extends StatelessWidget {
     );
   }
 
-  // Widget pembantu agar baris informasi rapi
   Widget _buildDetailRow(String label, String value) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
