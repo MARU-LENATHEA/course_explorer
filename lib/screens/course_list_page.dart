@@ -198,7 +198,7 @@ class _CourseListPageState extends State<CourseListPage> {
                     final bool isMine = course.ownerId == currentUserId;
                     final bool canModify =
                         (currentRole == 'owner' || currentRole == 'admin') &&
-                            isMine;
+                        isMine;
 
                     return CourseCard(
                       course: course,
