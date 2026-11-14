@@ -2,13 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
-import 'services/notification_service.dart';
-
-// --- TAMBAHAN PRAKTIK 7: FIREBASE ---
+// --- TAMBAHAN PRAKTIK 7, 8, 9, 10: FIREBASE & NOTIFIKASI ---
 import 'package:firebase_core/firebase_core.dart';
 
 import 'firebase_options.dart';
-// ------------------------------------
+import 'services/notification_service.dart';
+// -----------------------------------------------------------
 
 import 'constants/supabase_constants.dart';
 import 'services/course_data_source.dart';
@@ -31,15 +30,14 @@ const String studentId = '2415051046';
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // --- PRAKTIK 7: INISIALISASI FIREBASE ---
+  // 1. PRAKTIK 7: INISIALISASI FIREBASE (Wajib paling awal)
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
-  // ----------------------------------------
 
-  // --- PRAKTIK 8: MINTA IZIN NOTIFIKASI ---
-  await NotificationService.instance.initialize();
-  // ----------------------------------------
-
+  // 2. INISIALISASI SUPABASE (Wajib sebelum Notification Service)
   await Supabase.initialize(url: supabaseUrl, publishableKey: supabaseAnonKey);
+
+  // 3. PRAKTIK 9 & 10: INISIALISASI NOTIFIKASI (Minta izin & simpan token)
+  await NotificationService.instance.initialize();
 
   // PRAKTIK 2: Logika Session (Otomatis ke login kalau logout)
   Supabase.instance.client.auth.onAuthStateChange.listen((data) {
@@ -72,7 +70,7 @@ class MyApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       theme: ThemeData(useMaterial3: true, colorSchemeSeed: Colors.blue),
 
-      // PRAKTIK 2: Tambahkan key global
+      // PRAKTIK 2: Tambahkan key global untuk SnackBar Notifikasi
       navigatorKey: navigatorKey,
       scaffoldMessengerKey: messengerKey,
 
