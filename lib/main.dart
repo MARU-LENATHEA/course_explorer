@@ -6,6 +6,7 @@ import 'services/notification_service.dart';
 
 // --- TAMBAHAN PRAKTIK 7: FIREBASE ---
 import 'package:firebase_core/firebase_core.dart';
+
 import 'firebase_options.dart';
 // ------------------------------------
 
@@ -35,7 +36,7 @@ Future<void> main() async {
   // ----------------------------------------
 
   // --- PRAKTIK 8: MINTA IZIN NOTIFIKASI ---
-  await NotificationService.instance.requestPermission();
+  await NotificationService.instance.initialize();
   // ----------------------------------------
 
   await Supabase.initialize(url: supabaseUrl, publishableKey: supabaseAnonKey);
