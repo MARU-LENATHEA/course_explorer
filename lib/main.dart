@@ -2,6 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+// --- TAMBAHAN PRAKTIK 7: FIREBASE ---
+import 'package:firebase_core/firebase_core.dart';
+
+import 'firebase_options.dart';
+// ------------------------------------
+
 import 'constants/supabase_constants.dart';
 import 'services/course_data_source.dart';
 import 'services/course_supabase_service.dart';
@@ -22,6 +28,10 @@ const String studentId = '2415051046';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  // --- PRAKTIK 7: INISIALISASI FIREBASE ---
+  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+  // ----------------------------------------
 
   await Supabase.initialize(url: supabaseUrl, publishableKey: supabaseAnonKey);
 
