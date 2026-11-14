@@ -2,9 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import 'services/notification_service.dart';
+
 // --- TAMBAHAN PRAKTIK 7: FIREBASE ---
 import 'package:firebase_core/firebase_core.dart';
-
 import 'firebase_options.dart';
 // ------------------------------------
 
@@ -31,6 +32,10 @@ Future<void> main() async {
 
   // --- PRAKTIK 7: INISIALISASI FIREBASE ---
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+  // ----------------------------------------
+
+  // --- PRAKTIK 8: MINTA IZIN NOTIFIKASI ---
+  await NotificationService.instance.requestPermission();
   // ----------------------------------------
 
   await Supabase.initialize(url: supabaseUrl, publishableKey: supabaseAnonKey);
