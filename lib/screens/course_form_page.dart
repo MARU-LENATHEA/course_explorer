@@ -78,8 +78,8 @@ class _CourseFormPageState extends State<CourseFormPage> {
         SnackBar(
           content: Text(
             isEditMode
-                ? 'Course berhasil diperbarui!'
-                : 'Course baru berhasil ditambahkan!',
+                ? 'Kos berhasil diperbarui!'
+                : 'Kos baru berhasil ditambahkan!',
           ),
           backgroundColor: Colors.green,
         ),
@@ -105,7 +105,7 @@ class _CourseFormPageState extends State<CourseFormPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(isEditMode ? 'Edit Course' : 'Tambah Course'),
+        title: Text(isEditMode ? 'Edit Kos' : 'Tambah Kos'),
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
       ),
       body: SingleChildScrollView(
@@ -142,17 +142,17 @@ class _CourseFormPageState extends State<CourseFormPage> {
               ),
               const SizedBox(height: 20),
 
-              // Input Kode Course (Read-Only saat Edit Mode)
+              // Input Kode Kos (Read-Only saat Edit Mode)
               TextFormField(
                 controller: _codeController,
-                readOnly: isEditMode, // Wajib read-only saat edit sesuai modul
+                readOnly: isEditMode,
                 decoration: InputDecoration(
                   labelText: isEditMode
-                      ? 'Kode Mata Kuliah (Terkunci)'
-                      : 'Kode Mata Kuliah *',
-                  hintText: 'Misal: MOB01',
+                      ? 'Kode Kos (Terkunci)'
+                      : 'Kode Kos *',
+                  hintText: 'Misal: KOS01',
                   border: const OutlineInputBorder(),
-                  prefixIcon: const Icon(Icons.code),
+                  prefixIcon: const Icon(Icons.qr_code),
                   filled: isEditMode,
                   fillColor: isEditMode ? Colors.grey.shade200 : null,
                   helperText: isEditMode
@@ -161,47 +161,47 @@ class _CourseFormPageState extends State<CourseFormPage> {
                 ),
                 validator: (value) {
                   if (value == null || value.trim().isEmpty) {
-                    return 'Kode mata kuliah tidak boleh kosong';
+                    return 'Kode kos tidak boleh kosong';
                   }
                   return null;
                 },
               ),
               const SizedBox(height: 16),
 
-              // Input Judul Course
+              // Input Nama Kos
               TextFormField(
                 controller: _titleController,
                 decoration: const InputDecoration(
-                  labelText: 'Judul Mata Kuliah *',
-                  hintText: 'Misal: Flutter State Management',
+                  labelText: 'Nama Kos *',
+                  hintText: 'Misal: Kos Melati Indah',
                   border: OutlineInputBorder(),
-                  prefixIcon: Icon(Icons.book),
+                  prefixIcon: Icon(Icons.home_work),
                 ),
                 validator: (value) {
                   if (value == null || value.trim().isEmpty) {
-                    return 'Judul mata kuliah tidak boleh kosong';
+                    return 'Nama kos tidak boleh kosong';
                   }
                   return null;
                 },
               ),
               const SizedBox(height: 16),
 
-              // Input SKS
+              // Input Jumlah Kamar
               TextFormField(
                 controller: _creditsController,
                 keyboardType: TextInputType.number,
                 decoration: const InputDecoration(
-                  labelText: 'Jumlah SKS *',
+                  labelText: 'Jumlah Kamar *',
                   hintText: 'Misal: 3',
                   border: OutlineInputBorder(),
-                  prefixIcon: Icon(Icons.pin),
+                  prefixIcon: Icon(Icons.bed),
                 ),
                 validator: (value) {
                   if (value == null || value.trim().isEmpty) {
-                    return 'SKS tidak boleh kosong';
+                    return 'Jumlah kamar tidak boleh kosong';
                   }
                   if (int.tryParse(value.trim()) == null) {
-                    return 'SKS harus berupa angka yang valid';
+                    return 'Jumlah kamar harus berupa angka yang valid';
                   }
                   return null;
                 },
@@ -212,7 +212,7 @@ class _CourseFormPageState extends State<CourseFormPage> {
               DropdownButtonFormField<String>(
                 initialValue: _selectedStatus,
                 decoration: const InputDecoration(
-                  labelText: 'Status Course',
+                  labelText: 'Status Kos',
                   border: OutlineInputBorder(),
                   prefixIcon: Icon(Icons.info_outline),
                 ),
@@ -245,7 +245,7 @@ class _CourseFormPageState extends State<CourseFormPage> {
                   label: Text(
                     _isSaving
                         ? 'Menyimpan...'
-                        : (isEditMode ? 'Simpan Perubahan' : 'Simpan Course'),
+                        : (isEditMode ? 'Simpan Perubahan' : 'Simpan Data Kos'),
                   ),
                 ),
               ),

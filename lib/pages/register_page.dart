@@ -68,7 +68,7 @@ class _RegisterPageState extends State<RegisterPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Register')),
+      appBar: AppBar(title: const Text('Register KosFinder')),
       body: Padding(
         padding: const EdgeInsets.all(16),
         child: Form(
@@ -124,11 +124,11 @@ class _RegisterPageState extends State<RegisterPage> {
                 items: const [
                   DropdownMenuItem(
                     value: 'seeker',
-                    child: Text('Pencari Course (Seeker)'),
+                    child: Text('Pencari Kos (Seeker)'),
                   ),
                   DropdownMenuItem(
                     value: 'owner',
-                    child: Text('Pemilik Course (Owner)'),
+                    child: Text('Pemilik Kos (Owner)'),
                   ),
                 ],
                 onChanged: (v) => setState(() => _role = v ?? 'seeker'),

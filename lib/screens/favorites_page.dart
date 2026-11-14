@@ -17,7 +17,7 @@ class FavoritesPage extends StatelessWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Mata Kuliah Favorit'),
+        title: const Text('Kos Favorit'),
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
       ),
       body: favoriteCourses.isEmpty
@@ -28,7 +28,7 @@ class FavoritesPage extends StatelessWidget {
                   Icon(Icons.favorite_border, size: 64, color: Colors.grey),
                   SizedBox(height: 12),
                   Text(
-                    'Belum ada mata kuliah favorit.',
+                    'Belum ada kos favorit.',
                     style: TextStyle(color: Colors.grey, fontSize: 16),
                   ),
                 ],
@@ -53,7 +53,7 @@ class FavoritesPage extends StatelessWidget {
                       course.title,
                       style: const TextStyle(fontWeight: FontWeight.bold),
                     ),
-                    subtitle: Text('${course.code} • ${course.credits} SKS'),
+                    subtitle: Text('${course.code} • ${course.credits} Kamar'),
                     trailing: IconButton(
                       icon: const Icon(Icons.close, color: Colors.grey),
                       tooltip: 'Hapus dari Favorit',

@@ -32,14 +32,14 @@ class _ResponsiveShellState extends State<ResponsiveShell> {
                   labelType: NavigationRailLabelType.all,
                   destinations: const [
                     NavigationRailDestination(
-                      icon: Icon(Icons.book_outlined),
-                      selectedIcon: Icon(Icons.book),
-                      label: Text('Courses'),
+                      icon: Icon(Icons.home_work_outlined),
+                      selectedIcon: Icon(Icons.home_work),
+                      label: Text('Daftar Kos'),
                     ),
                     NavigationRailDestination(
                       icon: Icon(Icons.favorite_border),
                       selectedIcon: Icon(Icons.favorite),
-                      label: Text('Favorites'),
+                      label: Text('Favorit'),
                     ),
                   ],
                 ),
@@ -60,14 +60,14 @@ class _ResponsiveShellState extends State<ResponsiveShell> {
             },
             destinations: const [
               NavigationDestination(
-                icon: Icon(Icons.book_outlined),
-                selectedIcon: Icon(Icons.book),
-                label: 'Courses',
+                icon: Icon(Icons.home_work_outlined),
+                selectedIcon: Icon(Icons.home_work),
+                label: 'Daftar Kos',
               ),
               NavigationDestination(
                 icon: Icon(Icons.favorite_border),
                 selectedIcon: Icon(Icons.favorite),
-                label: 'Favorites',
+                label: 'Favorit',
               ),
             ],
           ),

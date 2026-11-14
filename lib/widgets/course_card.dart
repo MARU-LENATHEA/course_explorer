@@ -75,7 +75,7 @@ class CourseCard extends StatelessWidget {
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      '${course.code} • ${course.credits} SKS',
+                      '${course.code} • ${course.credits} Kamar',
                       style: TextStyle(
                         fontSize: 13,
                         color: Colors.grey.shade700,
@@ -114,13 +114,13 @@ class CourseCard extends StatelessWidget {
               if (onEdit != null)
                 IconButton(
                   icon: const Icon(Icons.edit_outlined, color: Colors.blue),
-                  tooltip: 'Edit Course',
+                  tooltip: 'Edit Kos',
                   onPressed: onEdit,
                 ),
               if (onDelete != null)
                 IconButton(
                   icon: const Icon(Icons.delete_outline, color: Colors.red),
-                  tooltip: 'Hapus Course',
+                  tooltip: 'Hapus Kos',
                   onPressed: onDelete,
                 ),
             ],

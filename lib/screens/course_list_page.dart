@@ -48,7 +48,7 @@ class _CourseListPageState extends State<CourseListPage> {
       builder: (ctx) => AlertDialog(
         title: const Text('Konfirmasi Hapus'),
         content: Text(
-          'Apakah Anda yakin ingin menghapus course "${course.title}" (${course.code}) dari database?',
+          'Apakah Anda yakin ingin menghapus kos "${course.title}" (${course.code}) dari database?',
         ),
         actions: [
           TextButton(
@@ -72,7 +72,7 @@ class _CourseListPageState extends State<CourseListPage> {
       if (!context.mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Course "${course.title}" berhasil dihapus!'),
+          content: Text('Kos "${course.title}" berhasil dihapus!'),
           backgroundColor: Colors.green,
         ),
       );
@@ -95,7 +95,7 @@ class _CourseListPageState extends State<CourseListPage> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Course Data Manager'),
+        title: Text(_profile != null ? 'KosFinder (${_profile!.role.toUpperCase()})' : 'KosFinder'),
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
         actions: [
           IconButton(
@@ -123,8 +123,8 @@ class _CourseListPageState extends State<CourseListPage> {
               MaterialPageRoute(builder: (_) => const CourseFormPage()),
             );
           },
-          icon: const Icon(Icons.add),
-          label: const Text('Tambah Course'),
+          icon: const Icon(Icons.add_home),
+          label: const Text('Tambah Kos'),
         ),
       ),
       body: Column(
@@ -186,7 +186,7 @@ class _CourseListPageState extends State<CourseListPage> {
                 }
                 if (provider.courses.isEmpty) {
                   return const Center(
-                    child: Text('Data course belum tersedia di database'),
+                    child: Text('Data kos belum tersedia di database'),
                   );
                 }
 
